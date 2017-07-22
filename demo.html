@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>VizArt Demo</title>
+	<meta name="description" content="VizArt Demo">
+	<meta name="keywords" content="Data Visualization D3 Chart VizArt opensource">
+	<meta charset="utf-8">
+	<meta name="author" content="Yun Xing">
+	<!--[if IE]><meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'><![endif]-->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+
+	<!-- Favicons -->
+	<link rel="shortcut icon" href="images/favicon.png">
+
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/style-responsive.css">
+	<link rel="stylesheet" href="css/animate.min.css">
+	<link rel="stylesheet" href="css/vertical-rhythm.min.css">
+	<link rel="stylesheet" href="css/owl.carousel.css">
+	<link rel="stylesheet" href="css/magnific-popup.css">
+
+
+</head>
+<body class="appear-animate">
+
+<!-- Page Loader -->
+<div class="page-loader">
+	<div class="loader">Loading...</div>
+</div>
+<!-- End Page Loader -->
+
+<!-- Page Wrap -->
+<div class="page" id="top">
+
+	<!-- Navigation panel -->
+	<nav class="main-nav dark transparent stick-fixed">
+		<div class="full-wrapper relative clearfix">
+			<!-- Logo ( * your text or image into link tag *) -->
+			<div class="nav-logo-wrap local-scroll">
+				<a href="./index.html" class="logo">
+					<img src="img/logo-white.png" alt="" />
+				</a>
+			</div>
+			<div class="mobile-nav">
+				<i class="fa fa-bars"></i>
+			</div>
+			<!-- Main Menu -->
+			<div class="inner-nav desktop-nav">
+				<ul class="clearlist scroll-nav local-scroll">
+					<li><a href="./index.html">Home</a></li>
+					<li><a href="./demo.html">Demo</a>  </li>
+					<li><a href="https://github.com/VizArtJS/vizart/wiki" target="_blank">Documentation</a></li>
+					<li><a href="./showcase.html">Showcase</a></li>
+					<!-- Item With Sub -->
+					<li>
+						<a href="#" class="mn-has-sub">Specials <i class="fa fa-angle-down"></i></a>
+
+						<!-- Sub -->
+						<ul class="mn-sub to-left">
+							<li>
+								<a href="./keiko_inokuma.html">Keiko Inokuma／猪熊 佳子</a>
+							</li>
+						</ul>
+						<!-- End Sub -->
+
+					</li>
+					<!-- End Item With Sub -->
+					<li><a href="https://github.com/VizArtJS/vizart" target="_blank">Github</a></li>
+				</ul>
+			</div>
+			<!-- End Main Menu -->
+		</div>
+	</nav>
+	<!-- End Navigation panel -->
+
+
+
+	<!-- Head Section -->
+	<section class="small-section bg-dark bg-linear-blue parallax-2">
+		<div class="relative container align-left">
+
+			<div class="row">
+
+				<div class="col-md-8">
+					<h1 class="hs-line-11 font-alt mb-20 mb-xs-0">Demo</h1>
+					<div class="hs-line-4 font-alt">
+						Check charts samples with source code
+					</div>
+				</div>
+
+				<div class="col-md-4 mt-30">
+					<div class="mod-breadcrumbs font-alt align-right">
+						<a href="./index.html">Home</a>&nbsp;/&nbsp;<span>Demo</span>
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+	</section>
+	<!-- End Head Section -->
+
+
+	<!-- Portfolio Section -->
+	<section class="page-section">
+		<div class="container relative">
+			<!-- Works Filter -->
+			<div class="works-filter font-alt align-center">
+				<a href="#" class="filter active" data-filter="*">All</a>
+				<a href="#basic" class="filter" data-filter=".basic">Basic</a>
+				<a href="#stacked" class="filter" data-filter=".basic-stacked">Stacked</a>
+				<a href="#hierarchy" class="filter" data-filter=".hierarchy">Hierarchy</a>
+				<a href="#path" class="filter" data-filter=".path">Path</a>
+				<a href="#geo" class="filter" data-filter=".geo">Geo</a>
+				<a href="#network" class="filter" data-filter=".network">Network</a>
+
+
+			</div>
+			<!-- End Works Filter -->
+
+			<!-- Works Grid -->
+			<ul class="works-grid work-grid-gut clearfix font-alt hover-white" id="work-grid">
+				<!-- Work Item (Lightbox) -->
+				<li class="work-item mix basic">
+					<a href="bar.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/bar.jpg" alt="Bar" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Bar</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (External Page) -->
+				<li class="work-item mix basic">
+					<a href="./area.html" class="work-ext-link">
+						<div class="work-img">
+							<img class="work-img" src="img/charts/area.jpg" alt="Area" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Area</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (External Page) -->
+				<li class="work-item mix basic">
+					<a href="./line.html" class="work-ext-link">
+						<div class="work-img">
+							<img class="work-img" src="img/charts/line.jpg" alt="Line" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Line</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (External Page) -->
+				<li class="work-item mix basic">
+					<a href="./pie.html" class="work-ext-link">
+						<div class="work-img">
+							<img class="work-img" src="img/charts/pie.jpg" alt="Pie" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Pie</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (External Page) -->
+				<li class="work-item mix basic">
+					<a href="./scatter.html" class="work-ext-link">
+						<div class="work-img">
+							<img class="work-img" src="img/charts/scatter.jpg" alt="Scatter Plot" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Scatter Plot</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (External Page) -->
+				<li class="work-item mix basic-stacked">
+					<a href="./corona.html" class="work-ext-link">
+						<div class="work-img">
+							<img class="work-img" src="img/charts/corona.jpg" alt="Corona" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Corona</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (External Page) -->
+				<li class="work-item mix basic-stacked">
+					<a href="./bar_grouped.html" class="work-ext-link">
+						<div class="work-img">
+							<img class="work-img" src="img/charts/bar_grouped.jpg" alt="Grouped Bar" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Grouped Bar</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (External Page) -->
+				<li class="work-item mix basic-stacked">
+					<a href="./multi_area.html" class="work-ext-link">
+						<div class="work-img">
+							<img class="work-img" src="img/charts/multi_area.jpg" alt="Stacked Area" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Stacked Area</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (External Page) -->
+				<li class="work-item mix basic-stacked">
+					<a href="./multi_line.html" class="work-ext-link">
+						<div class="work-img">
+							<img class="work-img" src="img/charts/multi_line.jpg" alt="Multiple Line" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Multiple Line</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+
+				<!-- Work Item (External Page) -->
+				<li class="work-item mix basic-stacked">
+					<a href="./stream.html" class="work-ext-link">
+						<div class="work-img">
+							<img class="work-img" src="img/charts/stream.jpg" alt="Stream" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Stream</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (Lightbox) -->
+				<li class="work-item mix path">
+					<a href="./chord.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/chord.jpg" alt="Chord" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Chord</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (Lightbox) -->
+				<li class="work-item mix path">
+					<a href="./stretched_chord.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/stretched_chord.jpg" alt="Stretched Chord" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Stretched Chord</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (Lightbox) -->
+				<li class="work-item mix path">
+					<a href="./sankey.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/sankey.jpg" alt="Sankey" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Sankey</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (Lightbox) -->
+				<li class="work-item mix path">
+					<a href="./partite.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/partite.jpg" alt="Bi Partite" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Bi Partite</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+
+				<!-- Work Item (Lightbox) -->
+				<li class="work-item mix path">
+					<a href="./parcoords.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/parallel_coordinates.jpg" alt="Parallel Coordinates" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Parallel Coordinates</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+				<!-- Work Item (Lightbox) -->
+				<li class="work-item mix hierarchy">
+					<a href="./circle_pack.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/circle_pack_half.jpg" alt="Circle Pack" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Circle Pack</h3>
+						</div>
+					</a>
+				</li>
+				<!-- End Work Item -->
+				<li class="work-item mix hierarchy">
+					<a href="./weighted_tree.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/weighted_tree.jpg" alt="Weighted Tree" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Weighted Tree</h3>
+						</div>
+					</a>
+				</li>
+
+				<li class="work-item mix hierarchy">
+					<a href="./sequential_sunburst.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/sequential_sunburst.jpg" alt="Sequential Sunburst" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Sequential Sunburst</h3>
+						</div>
+					</a>
+				</li>
+
+				<li class="work-item mix hierarchy">
+					<a href="./sunburst.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/sunburst.jpg" alt=" Sunburst" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Sunburst</h3>
+						</div>
+					</a>
+				</li>
+				<li class="work-item mix hierarchy">
+					<a href="./icicle_tree.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/icicle_tree.jpg" alt="Icicle Tree" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Icicle Tree</h3>
+						</div>
+					</a>
+				</li>
+
+				<li class="work-item mix geo">
+					<a href="./force_edge.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/force_edge.jpg" alt="Force Edge Bundling" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Force Edge Bundling</h3>
+						</div>
+					</a>
+				</li>
+
+				<li class="work-item mix geo">
+					<a href="./world_flight.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/world_flights.jpg" alt="World Flights" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">World Flights</h3>
+						</div>
+					</a>
+				</li>
+
+				<li class="work-item mix geo">
+					<a href="./choroplth.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/choropleth.jpg" alt="Choropleth" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Choropleth</h3>
+						</div>
+					</a>
+				</li>
+
+				<li class="work-item mix geo">
+					<a href="./nyc_pedcyc.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/nyc_pdc.jpg" alt="NYC Pedcyc Collisions" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">NYC Pedcyc Collisions</h3>
+						</div>
+					</a>
+				</li>
+
+				<li class="work-item mix network">
+					<a href="./criminal_network.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/crime_network.jpg" alt="Crime Network" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Crime Network</h3>
+						</div>
+					</a>
+				</li>
+
+				<li class="work-item mix network">
+					<a href="./criminal_network.html" class="mfp-image">
+						<div class="work-img">
+							<img src="img/charts/ribbon.jpg" alt="Ribbon" />
+						</div>
+						<div class="work-intro">
+							<h3 class="work-title">Ribbon</h3>
+						</div>
+					</a>
+				</li>
+			</ul>
+			<!-- End Works Grid -->
+
+		</div>
+	</section>
+	<!-- End Portfolio Section -->
+
+	<!-- Foter -->
+	<footer class="page-section bg-gray-lighter footer pb-60">
+		<div class="container">
+
+			<!-- Footer Logo -->
+			<div class="local-scroll mb-30 wow fadeInUp" data-wow-duration="1.5s">
+				<a href="#top"><img src="img/logo_blue.png" width="78" height="36" alt="" /></a>
+			</div>
+			<!-- End Footer Logo -->
+			<!-- Footer Text -->
+			<div class="footer-text">
+
+				<!-- Copyright -->
+				<div class="footer-copy font-alt">
+					<a href="https://github.com/BigFatDog" target="_blank">&copy; Yun Xing 2017</a>
+				</div>
+				<!-- End Copyright -->
+
+				<div class="footer-made">
+					Library released under <a href="https://github.com/thomaspark/bootswatch/blob/gh-pages/LICENSE">MIT License</a>
+				</div>
+
+			</div>
+			<!-- End Footer Text -->
+
+		</div>
+
+
+		<!-- Top Link -->
+		<div class="local-scroll">
+			<a href="#top" class="link-to-top"><i class="fa fa-caret-up"></i></a>
+		</div>
+		<!-- End Top Link -->
+
+	</footer>
+	<!-- End Foter -->
+
+
+</div>
+<!-- End Page Wrap -->
+
+<!-- JS -->
+<script type="text/javascript" src="js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="js/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/SmoothScroll.js"></script>
+<script type="text/javascript" src="js/jquery.scrollTo.min.js"></script>
+<script type="text/javascript" src="js/jquery.localScroll.min.js"></script>
+<script type="text/javascript" src="js/jquery.viewport.mini.js"></script>
+<script type="text/javascript" src="js/jquery.countTo.js"></script>
+<script type="text/javascript" src="js/jquery.appear.js"></script>
+<script type="text/javascript" src="js/jquery.sticky.js"></script>
+<script type="text/javascript" src="js/jquery.parallax-1.1.3.js"></script>
+<script type="text/javascript" src="js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="js/owl.carousel.min.js"></script>
+<script type="text/javascript" src="js/isotope.pkgd.min.js"></script>
+<script type="text/javascript" src="js/imagesloaded.pkgd.min.js"></script>
+<script type="text/javascript" src="js/jquery.magnific-popup.min.js"></script>
+<script type="text/javascript" src="js/wow.min.js"></script>
+<script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
+<script type="text/javascript" src="js/jquery.simple-text-rotator.min.js"></script>
+<script type="text/javascript" src="js/all.js"></script>
+
+</body>
+</html>

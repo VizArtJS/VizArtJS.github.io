@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Circle Pack</title>
+	<meta name="description" content="VizArt Circle Pack">
+	<meta name="keywords" content="VizArt Circle Pack">
+	<meta charset="utf-8">
+	<meta charset="utf-8">
+	<meta name="author" content="Yun Xing">
+	<!--[if IE]>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'><![endif]-->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+
+	<!-- Favicons -->
+	<link rel="shortcut icon" href="images/favicon.png">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/custom.css">
+	<link rel="stylesheet" href="css/style-responsive.css">
+	<link rel="stylesheet" href="css/animate.min.css">
+	<link rel="stylesheet" href="css/vertical-rhythm.min.css">
+	<link rel="stylesheet" href="css/atelier-lakeside-light.css">
+	<link rel="stylesheet" href="css/select2.css">
+	<link rel="stylesheet" href="css/select2-bootstrap.css">
+	<link rel="stylesheet" href="vizart-hierarchy.css">
+
+	<style>
+		#chart {
+			font-family: 'Merriweather Sans', sans-serif;
+			font-size: 10px;
+			font-weight: 400;
+			color: #4c4c4c;
+			fill: #4c4c4c;
+			text-align: center;
+			cursor: default;
+
+		}
+
+		.title {
+			font-family: 'Oswald', sans-serif;
+			color: #1c1c1c;
+			text-align: left;
+		}
+
+		#topTitle {
+			font-size: 36px;
+			line-height: 1.2;
+		}
+
+		#subTitle {
+			text-align: left;
+			margin-bottom: 20px;
+			font-size: 16px;
+			color: #BFBFBF;
+			font-family: 'Oswald', sans-serif;
+			font-weight: 300;
+		}
+
+		#topText {
+			text-align: left;
+			font-family: 'Merriweather Sans', sans-serif;
+			font-size: 11px;
+			/*margin-bottom: 10px;*/
+			line-height: 1.5;
+			color: #7D7D7D;
+		}
+
+		#searchTitle {
+			font-size: 20px;
+			margin-bottom: 10px;
+		}
+
+		.form-control {
+			font-size: 11px;
+			font-family: 'Merriweather Sans', sans-serif;
+		}
+
+		.dropdown-menu {
+			font-size: 11px;
+			font-family: 'Merriweather Sans', sans-serif;
+		}
+
+		.dropdown-menu > .active > a,
+		.dropdown-menu > .active > a:hover,
+		.dropdown-menu > .active > a:focus {
+			background-color: #7D7D7D;
+		}
+
+		#legendTitle {
+			text-align: left;
+			font-family: 'Oswald', sans-serif;
+			margin-bottom: 5px;
+			font-size: 13px;
+			color: #1c1c1c;
+		}
+
+		#legendText {
+			text-align: left;
+			margin-bottom: 10px;
+			font-size: 10px;
+			line-height: 1.5;
+			font-family: 'Merriweather Sans', sans-serif;
+			color: #7D7D7D;
+		}
+
+		.legendCircle {
+			stroke-width: 1;
+			stroke: #757575;
+			stroke-dasharray: 2 2;
+			fill: none;
+		}
+
+		.legendLine {
+			stroke-width: 1;
+			stroke: #E0E0E0;
+			shape-rendering: crispEdges;
+		}
+
+		.legendTitle {
+			fill: #333333;
+			font-family: 'Oswald', sans-serif;
+			text-anchor: middle;
+			font-size: 14px;
+		}
+
+		.legendSubTitle {
+			color: #BFBFBF;
+			text-anchor: middle;
+			font-size: 10px;
+			line-height: 1.2;
+			font-family: 'Merriweather Sans', sans-serif;
+		}
+
+		.legendText {
+			text-anchor: start;
+			font-size: 9px;
+		}
+
+		#attribution {
+			text-align: left;
+			margin-bottom: 20px;
+			margin-top: 10px;
+			font-size: 12px;
+			/*bottom: 0px;
+      position: fixed;*/
+			color: #bfbfbf;
+			font-family: 'Merriweather Sans', sans-serif;
+		}
+
+		@media (min-width: 768px) {
+			#loadText {
+				font-size: 24px;
+				top: 40%;
+			}
+		}
+
+		.nodeTooltip {
+			color: #333333;
+			font-family: 'Oswald', sans-serif;
+			text-anchor: middle;
+			font-size: 12px;
+			text-align: center;
+		}
+
+		.popover {
+			text-align: center;
+			pointer-events: none;
+		}
+
+		.full-height {
+			height: 100%;
+		}
+	</style>
+
+	<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default"></script>
+</head>
+<body class="appear-animate">
+
+<!-- Page Wrap -->
+<div class="page" id="top">
+
+	<!-- Navigation panel -->
+	<nav class="main-nav dark transparent stick-fixed">
+		<div class="full-wrapper relative clearfix">
+			<!-- Logo ( * your text or image into link tag *) -->
+			<div class="nav-logo-wrap local-scroll">
+				<a href="./index.html" class="logo">
+					<img src="img/logo-white.png" alt="" />
+				</a>
+			</div>
+			<div class="mobile-nav">
+				<i class="fa fa-bars"></i>
+			</div>
+			<!-- Main Menu -->
+			<div class="inner-nav desktop-nav">
+				<ul class="clearlist scroll-nav local-scroll">
+					<li><a href="./index.html">Home</a></li>
+					<li><a href="./demo.html">Demo</a>  </li>
+					<li><a href="https://github.com/VizArtJS/vizart/wiki" target="_blank">Documentation</a></li>
+					<li><a href="./showcase.html">Showcase</a></li>
+					<!-- Item With Sub -->
+					<li>
+						<a href="#" class="mn-has-sub">Specials <i class="fa fa-angle-down"></i></a>
+
+						<!-- Sub -->
+						<ul class="mn-sub to-left">
+							<li>
+								<a href="./keiko_inokuma.html">Keiko Inokuma／猪熊 佳子</a>
+							</li>
+						</ul>
+						<!-- End Sub -->
+
+					</li>
+					<!-- End Item With Sub -->
+					<li><a href="https://github.com/VizArtJS/vizart" target="_blank">Github</a></li>
+				</ul>
+			</div>
+			<!-- End Main Menu -->
+		</div>
+	</nav>
+	<!-- End Navigation panel -->
+
+
+	<!-- Head Section -->
+	<section class="small-section bg-dark bg-linear-blue parallax-2">
+		<div class="relative container align-left">
+
+			<div class="row">
+
+				<div class="col-md-8">
+					<h1 class="hs-line-11 font-alt mb-20 mb-xs-0">Circle Pack</h1>
+					<div class="hs-line-4 font-alt">
+						Circle Pack represents hierarchy. This work is based on Nadieh Bremer's <a href="https://www.visualcinnamon.com/portfolio/occupations">A Closer look at Occupations</a>
+					</div>
+				</div>
+
+				<div class="col-md-4 mt-30">
+					<div class="mod-breadcrumbs font-alt align-right">
+						<a href="./index.html">Home</a>&nbsp;/&nbsp;<a href="./demo.html">Demo</a> / Circle Pack
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+	</section>
+	<!-- End Head Section -->
+
+	<section class="page-section">
+		<div class="container relative">
+			<div class="work-full-media mb-80 mb-xs-40">
+				<div class="row">
+					<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+						<div class="row" style="height: 200px">
+							<div id="searchTitle" class="title">Find a Book Category</div>
+							<div class="form-group">
+								<select id="searchBox" style="width: 100%"></select>
+							</div>
+
+						</div>
+						<div class="row text-center" style="margin-top: 30px;">
+							<div id="legendRowWrapper" class="col-sm-12">
+								<div id="legendTitle2" style="text-align: center;">Number of book borrowings</div>
+								<div id="legendCircles"></div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-8 col-md-8 col-sm-8 col-xs-8">
+						<div id="chart" style="height: 500px;">
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+
+			<div class="section-text mb-60 mb-sm-40">
+				<div class="row">
+
+					<div class="col-md-4 mb-sm-50 mb-xs-30">
+
+						<!-- Project Detail -->
+						<div class="work-detail">
+							<h5 class="font-alt mt-0 mb-20">Circle Pack</h5>
+							<div class="work-full-detail">
+								<p>
+									<strong>Renderer:</strong>
+									Canvas
+								</p>
+								<p>
+									<strong>Module:</strong>
+									vizart-hierarchy
+								</p>
+								<p>
+									<strong>Data:</strong>
+									Wanli University Library book borrowing records.
+									Bars in each circle represents borrowings from schools of Wanli university
+								</p>
+							</div>
+						</div>
+						<!-- End Project Detail -->
+
+					</div>
+
+					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
+            <pre class="prettyprint lang-js">
+import { CirclePack } from 'vizart-hierarchy';
+import 'vizart-hierarchy/dist/vizart-hierarchy.css';
+
+const options = {
+	data: {
+		x: { name: 'School', type: 'string', accessor: 'MX'},
+		y: { name: 'Book Borrowings', type: 'number', accessor: 'MY'},
+	},
+
+	plots: {
+		titleFn: (d)=> { return 'Total: ' + d + ' borrowings'}
+	}
+};
+
+
+let chart = new VizArtHierarchy.CirclePack('#chart', options);
+$.getJSON('./data/library.json', function(data){
+	chart.render(data);
+	chart.createLegend('#legendCircles');
+});
+						</pre>
+					</div>
+
+
+				</div>
+			</div>
+		</div>
+	</section>
+
+</div>
+
+<!-- End Page Wrap -->
+
+<!-- JS -->
+
+<script type="text/javascript" src="js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="js/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/SmoothScroll.js"></script>
+<script type="text/javascript" src="js/jquery.scrollTo.min.js"></script>
+<script type="text/javascript" src="js/jquery.localScroll.min.js"></script>
+<script type="text/javascript" src="js/jquery.viewport.mini.js"></script>
+<script type="text/javascript" src="js/jquery.countTo.js"></script>
+<script type="text/javascript" src="js/jquery.appear.js"></script>
+<script type="text/javascript" src="js/jquery.sticky.js"></script>
+<script type="text/javascript" src="js/jquery.parallax-1.1.3.js"></script>
+<script type="text/javascript" src="js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="js/prettify.js"></script>
+<script type="text/javascript" src="vizart-hierarchy.standalone.js"></script>
+<script type="text/javascript" src="js/owl.carousel.min.js"></script>
+<script type="text/javascript" src="js/isotope.pkgd.min.js"></script>
+<script type="text/javascript" src="js/imagesloaded.pkgd.min.js"></script>
+<script type="text/javascript" src="js/jquery.magnific-popup.min.js"></script>
+<script type="text/javascript" src="js/wow.min.js"></script>
+<script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
+<script type="text/javascript" src="js/jquery.simple-text-rotator.min.js"></script>
+<script type="text/javascript" src="js/all.js"></script>
+<script type="text/javascript" src="js/d3.v4.min.js"></script>
+<script type="text/javascript" src="js/select2.full.min.js"></script>
+<script type="text/javascript" src="js/lodash.min.js"></script>
+
+
+<script>
+	$(document).ready(() => {
+		PR.prettyPrint();
+		const options = {
+			data: {
+				x: {name: 'University', type: 'string', accessor: 'MX'},
+				y: {name: 'Book Rentals', type: 'number', accessor: 'MY'},
+			},
+
+			plots: {
+				titleFn: (d) => {
+					return 'Total: ' + d + ' persons'
+				}
+			}
+		};
+
+
+		let chart = new VizArtHierarchy.CirclePack('#chart', options);
+		$.getJSON('./data/library.json', function (data) {
+			chart.render(data);
+			chart.createLegend('#legendCircles');
+
+			let _names = _.uniq(chart.nodeNames());
+			$("#searchBox").select2({
+				theme: "bootstrap",
+				data: _names
+			})
+
+			$("#searchBox").on("select2:select", (e)=> {
+				let _selected = $("#searchBox option:selected").text();
+				chart.search(_selected);
+			});
+		});
+
+	});
+</script>
+
+
+</body>
+</html>

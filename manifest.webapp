@@ -1,0 +1,25 @@
+{
+	"version": "1.0.0",
+	"name": "VizArt Website",
+	"launch_path": "/index.html",
+	"description": "VizArt Website",
+	"icons": {
+		"128": "/img/icon-128x128.png"
+	},
+	"developer": {
+		"name": "Yun Xing",
+		"url": "https://github.com/BigFatDog"
+	},
+	"installs_allowed_from": [
+		"*"
+	],
+	"default_locale": "en",
+	"permissions": {
+	},
+	"locales": {
+		"en": {
+			"name": "VizArt Website",
+			"description": "VizArt Website"
+		}
+	}
+}

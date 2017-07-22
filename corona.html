@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Corona</title>
+	<meta name="description" content="VizArt Corona">
+	<meta name="keywords" content="VizArt Corona">
+	<meta charset="utf-8">
+	<meta name="author" content="Yun Xing">
+	<!--[if IE]>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'><![endif]-->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+
+	<!-- Favicons -->
+	<link rel="shortcut icon" href="images/favicon.png">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/custom.css">
+	<link rel="stylesheet" href="css/style-responsive.css">
+	<link rel="stylesheet" href="css/animate.min.css">
+	<link rel="stylesheet" href="css/vertical-rhythm.min.css">
+	<link rel="stylesheet" href="css/atelier-lakeside-light.css">
+	<link rel="stylesheet" href="vizart-basic.css">
+
+	<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default"></script>
+</head>
+<body class="appear-animate">
+
+<!-- Page Wrap -->
+<div class="page" id="top">
+
+	<!-- Navigation panel -->
+	<nav class="main-nav dark transparent stick-fixed">
+		<div class="full-wrapper relative clearfix">
+			<!-- Logo ( * your text or image into link tag *) -->
+			<div class="nav-logo-wrap local-scroll">
+				<a href="./index.html" class="logo">
+					<img src="img/logo-white.png" alt="" />
+				</a>
+			</div>
+			<div class="mobile-nav">
+				<i class="fa fa-bars"></i>
+			</div>
+			<!-- Main Menu -->
+			<div class="inner-nav desktop-nav">
+				<ul class="clearlist scroll-nav local-scroll">
+					<li><a href="./index.html">Home</a></li>
+					<li><a href="./demo.html">Demo</a>  </li>
+					<li><a href="https://github.com/VizArtJS/vizart/wiki" target="_blank">Documentation</a></li>
+					<li><a href="./showcase.html">Showcase</a></li>
+					<!-- Item With Sub -->
+					<li>
+						<a href="#" class="mn-has-sub">Specials <i class="fa fa-angle-down"></i></a>
+
+						<!-- Sub -->
+						<ul class="mn-sub to-left">
+							<li>
+								<a href="./keiko_inokuma.html">Keiko Inokuma／猪熊 佳子</a>
+							</li>
+						</ul>
+						<!-- End Sub -->
+
+					</li>
+					<!-- End Item With Sub -->
+					<li><a href="https://github.com/VizArtJS/vizart" target="_blank">Github</a></li>
+				</ul>
+			</div>
+			<!-- End Main Menu -->
+		</div>
+	</nav>
+	<!-- End Navigation panel -->
+
+
+	<!-- Head Section -->
+	<section class="small-section bg-dark bg-linear-blue parallax-2">
+		<div class="relative container align-left">
+
+			<div class="row">
+
+				<div class="col-md-8">
+					<h1 class="hs-line-11 font-alt mb-20 mb-xs-0">Corona</h1>
+					<div class="hs-line-4 font-alt">
+						Corona shows a stacked layout of data series
+					</div>
+				</div>
+
+				<div class="col-md-4 mt-30">
+					<div class="mod-breadcrumbs font-alt align-right">
+						<a href="./index.html">Home</a>&nbsp;/&nbsp;<a href="./demo.html">Demo</a> / Corona
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+	</section>
+	<!-- End Head Section -->
+
+	<section class="page-section">
+		<div class="container relative">
+
+			<div class="row" style="text-align: center; width: 100%;margin-top:10px">
+				<a id="grouped" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Grouped</a>
+				<a id="stacked" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Stacked</a>
+				<a id="expanded" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Expanded</a>
+				<a id="red" href="#" class="btn btn-mod  btn-gray btn-round mb-10 mr-5">Red</a>
+				<a id="green" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Green</a>
+				<a id="warm" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Warm</a>
+				<a id="cool" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Cool</a>
+			</div>
+			<div class="work-full-media mb-80 mb-xs-40">
+				<div id="chart" class="chart">
+
+				</div>
+			</div>
+
+
+			<div class="section-text mb-60 mb-sm-40">
+				<div class="row">
+
+					<div class="col-md-4 mb-sm-50 mb-xs-30">
+
+						<!-- Project Detail -->
+						<div class="work-detail">
+							<h5 class="font-alt mt-0 mb-20">Bar</h5>
+							<div class="work-full-detail">
+								<p>
+									<strong>Renderer:</strong>
+									SVG
+								</p>
+								<p>
+									<strong>Module:</strong>
+									vizart-basic
+								</p>
+								<p>
+									<strong>Data:</strong>
+									Employee Attrition
+								</p>
+							</div>
+						</div>
+						<!-- End Project Detail -->
+
+					</div>
+
+					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
+            <pre class="prettyprint lang-js">
+import { Corona } from 'vizart-basic';
+import 'vizart-basic/dist/vizart-basic.css';
+
+const options = {
+	chart: {
+		height: 420,
+			margin: { left: 30, right: 30, top: 10, bottom: 30 }
+		},
+
+	data: {
+		s: { name: 'Department', type: 'string', accessor: 'dep'},
+		x:
+			{ name: 'Age', type: 'string', accessor: 'age'}
+		,
+		y: [
+			{ name: 'Monthly Income', type: 'number', accessor: 'income'}
+		],
+	},
+
+	plots: {
+		levels: 0,				//How many levels or inner circles should there be drawn
+		maxValue: 0, 			//What is the value that the biggest circle will represent
+		labelFactor: 1.15, 	//How much farther than the radius of the outer circle should the labels be placed
+		wrapWidth: 60, 		//The number of pixels after which a label needs to be given a new line
+		opacityArea: 0.35, 	//The opacity of the area of the blob
+		dotRadius: 4, 			//The size of the colored circles of each blog
+		opacityCircles: 0.1, 	//The opacity of the circles of each blob
+		strokeWidth: 2, 		//The width of the stroke around each blob
+		innerRadiusRatio: 0.4,
+		showDots: false,
+		sortArea: true, // show smallest area on top
+		stackLayout: false, // stack areas
+		stackMethod: 'expand',
+		isArea: true	//If true the area and stroke will follow a round path (cardinal-closed),
+	}
+};
+
+const _data = [
+	{ age: 19, income: 9, dep: 'science' }
+]
+
+const _chart = new Corona('#chart', options);
+_chart.render(_data);
+						</pre>
+					</div>
+
+
+				</div>
+			</div>
+		</div>
+	</section>
+
+</div>
+
+<!-- End Page Wrap -->
+
+<!-- JS -->
+
+<script type="text/javascript" src="js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="js/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/SmoothScroll.js"></script>
+<script type="text/javascript" src="js/jquery.scrollTo.min.js"></script>
+<script type="text/javascript" src="js/jquery.localScroll.min.js"></script>
+<script type="text/javascript" src="js/jquery.viewport.mini.js"></script>
+<script type="text/javascript" src="js/jquery.countTo.js"></script>
+<script type="text/javascript" src="js/jquery.appear.js"></script>
+<script type="text/javascript" src="js/jquery.sticky.js"></script>
+<script type="text/javascript" src="js/jquery.parallax-1.1.3.js"></script>
+<script type="text/javascript" src="js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="js/prettify.js"></script>
+<script type="text/javascript" src="vizart-basic.standalone.js"></script>
+<script type="text/javascript" src="js/owl.carousel.min.js"></script>
+<script type="text/javascript" src="js/isotope.pkgd.min.js"></script>
+<script type="text/javascript" src="js/imagesloaded.pkgd.min.js"></script>
+<script type="text/javascript" src="js/jquery.magnific-popup.min.js"></script>
+<script type="text/javascript" src="js/wow.min.js"></script>
+<script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
+<script type="text/javascript" src="js/jquery.simple-text-rotator.min.js"></script>
+<script type="text/javascript" src="js/all.js"></script>
+
+<script>
+	$(document).ready(() => {
+		PR.prettyPrint();
+		const options = {
+			chart: {
+				height: 420
+			},
+			data: {
+				s: {name: 'Department', type: 'string', accessor: 'ms'},
+				x: {name: 'Age', type: 'string', accessor: 'mx'}
+				,
+				y: [
+					{name: 'Monthly Income', type: 'number', accessor: 'my'}
+				],
+			},
+
+			plots: {
+				levels: 0,				//How many levels or inner circles should there be drawn
+				maxValue: 0, 			//What is the value that the biggest circle will represent
+				labelFactor: 1.15, 	//How much farther than the radius of the outer circle should the labels be placed
+				wrapWidth: 60, 		//The number of pixels after which a label needs to be given a new line
+				opacityArea: 0.35, 	//The opacity of the area of the blob
+				dotRadius: 4, 			//The size of the colored circles of each blog
+				opacityCircles: 0.1, 	//The opacity of the circles of each blob
+				strokeWidth: 2, 		//The width of the stroke around each blob
+				innerRadiusRatio: 0.4,
+				showDots: false,
+				sortArea: true, // show smallest area on top
+				stackLayout: true, // stack areas
+				stackMethod: 'expand',
+				isArea: true	//If true the area and stroke will follow a round path (cardinal-closed),
+			}
+		};
+
+		$.getJSON('./data/basic-stacked.json', res=>{
+			let chart = new VizArtBasic.Corona('#chart', options);
+			chart.render(res);
+
+			let _opt = chart.options();
+
+			// change color
+			$('#red').click(function () {
+				_opt.color.scheme = ['#ffeda0', '#feb24c', '#f03b20'];
+				chart.transitionColor(_opt.color);
+			});
+
+			$('#green').click(function () {
+				_opt.color.scheme = ['#f7fcb9', '#addd8e', '#31a354'];
+				chart.transitionColor(_opt.color)
+			});
+
+			$('#warm').click(function () {
+				_opt.color.scheme = "Warm";
+				chart.transitionColor(_opt.color)
+			});
+
+			$('#cool').click(function () {
+				_opt.color.scheme = "Cool";
+				chart.transitionColor(_opt.color);
+			});
+
+			$('#grouped').click(function () {
+				_opt.plots.stackLayout = false;
+				chart.options(_opt);
+				chart.update();
+			})
+			$('#stacked').click(function () {
+				_opt.plots.stackLayout = true;
+				_opt.plots.stackMethod = 'stacked';
+				chart.options(_opt);
+				chart.update();
+			});
+			$('#expanded').click(function () {
+				_opt.plots.stackLayout = true;
+				_opt.plots.stackMethod = 'expand';
+				chart.options(_opt);
+				chart.update();
+			});
+		});
+
+
+
+	});
+</script>
+
+
+</body>
+</html>

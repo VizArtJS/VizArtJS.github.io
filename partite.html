@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Bi Partite</title>
+	<meta name="description" content="VizArt Bar">
+	<meta name="keywords" content="VizArt Bar">
+	<meta charset="utf-8">
+	<meta name="author" content="Yun Xing">
+	<!--[if IE]>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'><![endif]-->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+
+	<!-- Favicons -->
+	<link rel="shortcut icon" href="images/favicon.png">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/custom.css">
+	<link rel="stylesheet" href="css/style-responsive.css">
+	<link rel="stylesheet" href="css/animate.min.css">
+	<link rel="stylesheet" href="css/vertical-rhythm.min.css">
+	<link rel="stylesheet" href="css/atelier-lakeside-light.css">
+	<link rel="stylesheet" href="vizart-path.css">
+
+	<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=default"></script>
+</head>
+<body class="appear-animate">
+
+<!-- Page Wrap -->
+<div class="page" id="top">
+
+	<!-- Navigation panel -->
+	<nav class="main-nav dark transparent stick-fixed">
+		<div class="full-wrapper relative clearfix">
+			<!-- Logo ( * your text or image into link tag *) -->
+			<div class="nav-logo-wrap local-scroll">
+				<a href="./index.html" class="logo">
+					<img src="img/logo-white.png" alt="" />
+				</a>
+			</div>
+			<div class="mobile-nav">
+				<i class="fa fa-bars"></i>
+			</div>
+			<!-- Main Menu -->
+			<div class="inner-nav desktop-nav">
+				<ul class="clearlist scroll-nav local-scroll">
+					<li><a href="./index.html">Home</a></li>
+					<li><a href="./demo.html">Demo</a>  </li>
+					<li><a href="https://github.com/VizArtJS/vizart/wiki" target="_blank">Documentation</a></li>
+					<li><a href="./showcase.html">Showcase</a></li>
+					<!-- Item With Sub -->
+					<li>
+						<a href="#" class="mn-has-sub">Specials <i class="fa fa-angle-down"></i></a>
+
+						<!-- Sub -->
+						<ul class="mn-sub to-left">
+							<li>
+								<a href="./keiko_inokuma.html">Keiko Inokuma／猪熊 佳子</a>
+							</li>
+						</ul>
+						<!-- End Sub -->
+
+					</li>
+					<!-- End Item With Sub -->
+					<li><a href="https://github.com/VizArtJS/vizart" target="_blank">Github</a></li>
+				</ul>
+			</div>
+			<!-- End Main Menu -->
+		</div>
+	</nav>
+	<!-- End Navigation panel -->
+
+
+	<!-- Head Section -->
+	<section class="small-section bg-dark bg-linear-blue parallax-2">
+		<div class="relative container align-left">
+
+			<div class="row">
+
+				<div class="col-md-8">
+					<h1 class="hs-line-11 font-alt mb-20 mb-xs-0">Bi-Partite</h1>
+					<div class="hs-line-4 font-alt">
+						Bi-Partie shows two relationships between source and target side by side.
+						This work is based on Pasha's <a href="http://bl.ocks.org/NPashaP/cd80ab54c52f80c4d84cad0ba9da72c2">Double Vertical bP with labels</a>
+					</div>
+				</div>
+
+				<div class="col-md-4 mt-30">
+					<div class="mod-breadcrumbs font-alt align-right">
+						<a href="demo.html">Demo</a>&nbsp;/&nbsp;Path&nbsp;/&nbsp;<span>Bi-Partite</span>
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+	</section>
+	<!-- End Head Section -->
+
+	<section class="page-section">
+		<div class="container relative">
+			<div class="row" style="text-align: center; width: 100%;margin-top:10px">
+				<a id="red" href="#" class="btn btn-mod  btn-gray btn-round mb-10 mr-5">Red</a>
+				<a id="green" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Green</a>
+				<a id="purple" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Purple</a>
+			</div>
+
+			<div class="work-full-media mb-80 mb-xs-40">
+				<div id="chart" style="height: 500px;">
+				</div>
+			</div>
+
+
+			<div class="section-text mb-60 mb-sm-40">
+				<div class="row">
+
+					<div class="col-md-4 mb-sm-50 mb-xs-30">
+
+						<!-- Project Detail -->
+						<div class="work-detail">
+							<h5 class="font-alt mt-0 mb-20">Bi-Partite</h5>
+							<div class="work-full-detail">
+								<p>
+									<strong>Renderer:</strong>
+									SVG
+								</p>
+								<p>
+									<strong>Module:</strong>
+									vizart-path
+								</p>
+								<p>
+									<strong>Data:</strong>
+									Sales and profits report of online business
+								</p>
+							</div>
+						</div>
+						<!-- End Project Detail -->
+
+					</div>
+
+					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
+            <pre class="prettyprint lang-js">
+import { BiPartite } from 'vizart-path';
+import 'vizart-path/dist/vizart-path.css';
+
+const options = {
+	data: {
+		source: {
+			name: 'product',
+			type: 'string',
+			accessor: 'product'
+		},
+
+		target: {
+			name: 'customer',
+			type: 'string',
+			accessor: 'customer'
+		},
+
+		links: [
+			{
+				name: 'volume',
+				type: 'number',
+				accessor: 'volume'
+			},
+			{
+				name: 'profit',
+				type: 'number',
+				accessor: 'profit'
+			}
+		],
+	},
+};
+
+const _data = ...
+const _chart = new BiPartite('#chart', options);
+_chart.render(_data);
+						</pre>
+					</div>
+
+
+				</div>
+			</div>
+		</div>
+	</section>
+
+</div>
+
+<!-- End Page Wrap -->
+
+<!-- JS -->
+
+<script type="text/javascript" src="js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="js/jquery.easing.1.3.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/SmoothScroll.js"></script>
+<script type="text/javascript" src="js/jquery.scrollTo.min.js"></script>
+<script type="text/javascript" src="js/jquery.localScroll.min.js"></script>
+<script type="text/javascript" src="js/jquery.viewport.mini.js"></script>
+<script type="text/javascript" src="js/jquery.countTo.js"></script>
+<script type="text/javascript" src="js/jquery.appear.js"></script>
+<script type="text/javascript" src="js/jquery.sticky.js"></script>
+<script type="text/javascript" src="js/jquery.parallax-1.1.3.js"></script>
+<script type="text/javascript" src="js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="js/prettify.js"></script>
+<script type="text/javascript" src="vizart-path.standalone.js"></script>
+<script type="text/javascript" src="js/owl.carousel.min.js"></script>
+<script type="text/javascript" src="js/isotope.pkgd.min.js"></script>
+<script type="text/javascript" src="js/imagesloaded.pkgd.min.js"></script>
+<script type="text/javascript" src="js/jquery.magnific-popup.min.js"></script>
+<script type="text/javascript" src="js/wow.min.js"></script>
+<script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
+<script type="text/javascript" src="js/jquery.simple-text-rotator.min.js"></script>
+<script type="text/javascript" src="js/all.js"></script>
+<script type="text/javascript" src="js/d3.v4.min.js"></script>
+<script type="text/javascript" src="js/lodash.min.js"></script>
+
+
+<script>
+	$(document).ready(() => {
+		PR.prettyPrint();
+
+		let _chart = new VizArtPath.BiPartite('#chart', {
+			chart: {
+				margin: {
+					left: 0,
+					top: 30,
+					right: 0,
+					bottom: 10
+				},
+			},
+			data: {
+				source: {
+					name: 'product',
+					type: 'string',
+					accessor: 'product'
+				},
+
+				target: {
+					name: 'customer',
+					type: 'string',
+					accessor: 'customer'
+				},
+
+				links: [
+					{
+						name: 'volume',
+						type: 'number',
+						accessor: 'volume'
+					},
+					{
+						name: 'profit',
+						type: 'number',
+						accessor: 'profit'
+					}
+				],
+			},
+			color: {
+				scheme: [
+					"#F44336",
+					"#E91E63",
+					"#9C27B0",
+					"#673AB7",
+					"#3F51B5",
+					"#2196F3",
+					"#03A9F4",
+					"#00BCD4",
+					"#009688",
+					"#4CAF50",
+					"#8BC34A",
+					"#CDDC39",
+					"#FFEB3B",
+					"#FFC107",
+					"#FF9800",
+					"#FF5722"
+				],
+				scaleType: 'categorical'
+			}
+		});
+
+		d3.csv('./data/sales_flow_cn.csv', function(res){
+			_chart.render(res);
+
+			let _opt = _chart.options();
+
+
+			// change color
+			$('#red').click(function(){
+				_opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
+				_chart.transitionColor(_opt.color);
+			});
+
+			$('#green').click(function(){
+				_opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
+				_chart.transitionColor(_opt.color)
+			});
+
+			$('#purple').click(function(){
+				_opt.color.scheme = ['#e7e1ef','#c994c7','#dd1c77'];
+				_chart.transitionColor(_opt.color)
+			});
+
+		});
+
+	});
+</script>
+
+
+</body>
+</html>

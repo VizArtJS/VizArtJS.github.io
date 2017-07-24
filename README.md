@@ -1,1 +1,1 @@
-# VizArtJS.github.io
+# vizartjs.github.io

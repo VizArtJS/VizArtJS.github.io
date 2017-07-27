@@ -5,7 +5,7 @@ document.write('<script src="http://' + (location.host || 'localhost').split(':'
 	(factory((global.VizArtPath = {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "0.6.0";
+var version = "0.6.1";
 
 var colors = function (specifier) {
   var n = specifier.length / 6 | 0,
@@ -20051,6 +20051,31 @@ var nodeIsDate = nodeUtil$1 && nodeUtil$1.isDate;
  */
 var isDate = nodeIsDate ? baseUnary$1(nodeIsDate) : baseIsDate;
 
+/**
+ * Checks if `value` is classified as an `Array` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an array, else `false`.
+ * @example
+ *
+ * _.isArray([1, 2, 3]);
+ * // => true
+ *
+ * _.isArray(document.body.children);
+ * // => false
+ *
+ * _.isArray('abc');
+ * // => false
+ *
+ * _.isArray(_.noop);
+ * // => false
+ */
+var isArray$1 = Array.isArray;
+
 var ascending$3 = function (a, b) {
   return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
 };
@@ -25131,6 +25156,48 @@ var _functor = function _functor(v) {
     };
 };
 
+/**
+ * Checks if `value` is `null`.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is `null`, else `false`.
+ * @example
+ *
+ * _.isNull(null);
+ * // => true
+ *
+ * _.isNull(void 0);
+ * // => false
+ */
+function isNull$1(value) {
+  return value === null;
+}
+
+/**
+ * Checks if `value` is `undefined`.
+ *
+ * @static
+ * @since 0.1.0
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is `undefined`, else `false`.
+ * @example
+ *
+ * _.isUndefined(void 0);
+ * // => true
+ *
+ * _.isUndefined(null);
+ * // => false
+ */
+function isUndefined$1(value) {
+  return value === undefined;
+}
+
 var _this = undefined;
 
 //============================================================================================
@@ -25162,7 +25229,8 @@ var ParCoords = function ParCoords(config) {
         hideAxis: [],
         flipAxes: [],
         animationTime: 1100, // How long it takes to flip the axis when you double click
-        rotateLabels: false
+        rotateLabels: false,
+        evenScale: null
     };
 
     extend$1(__, config);
@@ -25349,7 +25417,13 @@ var ParCoords = function ParCoords(config) {
                     });
                     _extent = temp;
                 }
-                return linear$4().domain(_extent).range(getRange());
+
+                if (!isNull$1(__.evenScale) && !isUndefined$1(__.evenScale) && isArray$1(__.evenScale) && __.evenScale.length === 2) {
+
+                    return linear$4().domain(__.evenScale).range(getRange());
+                } else {
+                    return linear$4().domain(_extent).range(getRange());
+                }
             },
             "string": function string(k) {
                 var counts = {},
@@ -27450,23 +27524,24 @@ var DefaultOptions = {
         colorDimension: null,
         renderingMode: 'queue',
         dimensions: null,
-        autoSortDimensions: 'asc'
+        autoSortDimensions: 'asc',
+        evenScale: null
     }
 };
 
-var ParallelCoordinate = function (_AbstractChart) {
-    inherits(ParallelCoordinate, _AbstractChart);
+var ParallelCoordinates = function (_AbstractChart) {
+    inherits(ParallelCoordinates, _AbstractChart);
 
-    function ParallelCoordinate(canvasId, _userOptions) {
-        classCallCheck$1(this, ParallelCoordinate);
+    function ParallelCoordinates(canvasId, _userOptions) {
+        classCallCheck$1(this, ParallelCoordinates);
 
-        var _this = possibleConstructorReturn(this, (ParallelCoordinate.__proto__ || Object.getPrototypeOf(ParallelCoordinate)).call(this, canvasId, _userOptions));
+        var _this = possibleConstructorReturn(this, (ParallelCoordinates.__proto__ || Object.getPrototypeOf(ParallelCoordinates)).call(this, canvasId, _userOptions));
 
         _this.parcoords;
         return _this;
     }
 
-    createClass$1(ParallelCoordinate, [{
+    createClass$1(ParallelCoordinates, [{
         key: 'render',
         value: function render(_data) {
             this.data(_data);
@@ -27482,9 +27557,9 @@ var ParallelCoordinate = function (_AbstractChart) {
         value: function update() {
             var _this2 = this;
 
-            get(ParallelCoordinate.prototype.__proto__ || Object.getPrototypeOf(ParallelCoordinate.prototype), 'update', this).call(this);
+            get(ParallelCoordinates.prototype.__proto__ || Object.getPrototypeOf(ParallelCoordinates.prototype), 'update', this).call(this);
 
-            this.parcoords = ParCoords()(this._containerId).data(this._data).hideAxis(this._options.plots.hiddenAxis).alpha(this._options.plots.alpha).composite(this._options.plots.composite).margin(this._options.chart.margin).mode(this._options.plots.renderingMode).shadows();
+            this.parcoords = ParCoords()(this._containerId).data(this._data).hideAxis(this._options.plots.hiddenAxis).alpha(this._options.plots.alpha).composite(this._options.plots.composite).margin(this._options.chart.margin).mode(this._options.plots.renderingMode).evenScale(this._options.plots.evenScale).shadows();
 
             this.parcoords.color(function (d) {
                 return _this2._colorScale(d[_this2._options.plots.colorDimension]);
@@ -27649,7 +27724,7 @@ var ParallelCoordinate = function (_AbstractChart) {
         value: function transitionColor(colorOptions) {
             var _this4 = this;
 
-            get(ParallelCoordinate.prototype.__proto__ || Object.getPrototypeOf(ParallelCoordinate.prototype), 'transitionColor', this).call(this, colorOptions);
+            get(ParallelCoordinates.prototype.__proto__ || Object.getPrototypeOf(ParallelCoordinates.prototype), 'transitionColor', this).call(this, colorOptions);
 
             this.parcoords.color(function (d) {
                 return _this4._colorScale(d[_this4._options.plots.colorDimension]);
@@ -27737,7 +27812,7 @@ var ParallelCoordinate = function (_AbstractChart) {
             return mergeBase(DefaultOptions, _userOpt);
         }
     }]);
-    return ParallelCoordinate;
+    return ParallelCoordinates;
 }(AbstractChart);
 
 /**
@@ -28614,31 +28689,6 @@ var isArguments$1 = baseIsArguments$1(function () {
 }()) ? baseIsArguments$1 : function (value) {
   return isObjectLike$1(value) && hasOwnProperty$7$1.call(value, 'callee') && !propertyIsEnumerable$1$1.call(value, 'callee');
 };
-
-/**
- * Checks if `value` is classified as an `Array` object.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an array, else `false`.
- * @example
- *
- * _.isArray([1, 2, 3]);
- * // => true
- *
- * _.isArray(document.body.children);
- * // => false
- *
- * _.isArray('abc');
- * // => false
- *
- * _.isArray(_.noop);
- * // => false
- */
-var isArray$1 = Array.isArray;
 
 /**
  * This method returns `false`.
@@ -34221,7 +34271,7 @@ var Sankey = function (_AbstractChart) {
 // export { default as Clustergram } from './Clustergram';
 
 exports.version = version;
-exports.ParallelCoordinate = ParallelCoordinate;
+exports.ParallelCoordinates = ParallelCoordinates;
 exports.BiPartite = BiPartite;
 exports.Chord = Chord;
 exports.StrentchedChord = StretchedChord;

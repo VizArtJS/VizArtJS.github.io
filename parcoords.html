@@ -141,7 +141,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { ParallelCoordinate } from 'vizart-path';
+import { ParallelCoordinates } from 'vizart-path';
 import 'vizart-path/dist/vizart-path.css';
 
 const options = {
@@ -154,7 +154,7 @@ const options = {
 };
 
 const _data = ...
-const _chart = new ParallelCoordinate('#chart', options);
+const _chart = new ParallelCoordinates('#chart', options);
 _chart.render(_data);
 						</pre>
 					</div>
@@ -201,7 +201,7 @@ _chart.render(_data);
 	$(document).ready(() => {
 		PR.prettyPrint();
 
-		let _chart = new VizArtPath.ParallelCoordinate('#chart', {
+		let _chart = new VizArtPath.ParallelCoordinates('#chart', {
 			chart: {
 				margin: {
 					left: 20,
@@ -209,6 +209,12 @@ _chart.render(_data);
 					right: 10,
 					bottom: 20
 				},
+			},
+			color: {
+			    type: 'categorical',
+					scheme: ['#3b73b9', '#aa71aa', '#ee3224', '#00aeef', '#f8981d',
+						'#80bb42', '#aacdef', '#cacec2', '#aaa6ce', '#df9e9d', '#6ab2e7',
+						'#ffdd00', '#9ac2b9', '#a7a9ac', '#bbbb42', '#e6a6ce']
 			},
 			plots: {
 				hiddenAxis: ['name'],

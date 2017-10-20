@@ -125,7 +125,7 @@
 							<div class="work-full-detail">
 								<p>
 									<strong>Renderer:</strong>
-									SVG (Canvas in progress)
+									Canvas
 								</p>
 								<p>
 									<strong>Module:</strong>
@@ -197,79 +197,84 @@ _chart.render(fakeData);
 <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
 <script type="text/javascript" src="js/jquery.simple-text-rotator.min.js"></script>
 <script type="text/javascript" src="js/all.js"></script>
+<script type="text/javascript" src="js/d3.js"></script>
+
 
 <script>
 	$(document).ready(() => {
 		PR.prettyPrint();
+
+		const metricAccessor = 'high';
 		const options = {
-			chart: {
-				height: 420,
-				margin: {
-					left: 30,
-					right: 30,
-					top: 10,
-					bottom: 30
-				}
+			data: {
+				x:  { name: 'date', type: 'date', accessor: 'date', format: '%m/%d/%Y'},
+				y: [
+					{ name: metricAccessor, type: 'number', accessor: metricAccessor}
+				],
 			},
 
-			data: {
-				x: {
-					name: 'Age',
-					accessor: 'mx',
-					type: 'number',
+			chart: {
+				margin: {
+					top: 20,
+					left: 50,
+					right: 30,
+					bottom:40
 				},
-				y: [
-					{
-						name: 'Monthly Income',
-						accessor: 'my',
-						type: 'number',
-					}
-				]
 			},
+			ordering: {
+				accessor: 'date',
+				direction: 'asc'
+			},
+			plots: {
+				areaOpacity: 0.5,
+				curve: 'basis',
+				strokeWidth: 2,
+				nodeRadius: 4,
+				drawArea: true,
+				showDots: false
+			}
 		};
 
-		$.getJSON('./data/basic.json', res=> {
-			let chart = new VizArtBasic.Area('#chart', options);
-			chart.render(res);
-
-			let _opt = chart.options();
-
-			// change color
-			$('#red').click(function(){
-				_opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
-				chart.transitionColor(_opt.color);
-			});
-
-			$('#green').click(function(){
-				_opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-				chart.transitionColor(_opt.color)
-			});
-
-			$('#warm').click(function(){
-				_opt.color.scheme = "Warm";
-				chart.transitionColor(_opt.color)
-			});
-
-			$('#cool').click(function(){
-				_opt.color.scheme = "Cool";
-				chart.transitionColor(_opt.color);
-			});
-
-			$('#x-asc').click(function(){
-				chart.sort('mx', 'asc');
-			})
-			$('#x-desc').click(function(){
-				chart.sort('mx', 'desc');
-			});
-			$('#y-asc').click(function(){
-				chart.sort('my', 'asc');
-			});
-			$('#y-desc').click(function(){
-				chart.sort('my', 'desc');
-			});
+		const area = new VizArtBasic.Area('#chart', options);
+		d3.csv('./data/nasdaq1985-2012.csv', function(err, res){
+			area.render(res);
 		});
 
+		let opt = area.options();
 
+		// change color
+		$('#red').click(function(){
+			opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
+			chart.transitionColor(opt.color);
+		});
+
+		$('#green').click(function(){
+			opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
+			chart.transitionColor(opt.color)
+		});
+
+		$('#warm').click(function(){
+			opt.color.scheme = "Warm";
+			chart.transitionColor(opt.color)
+		});
+
+		$('#cool').click(function(){
+			opt.color.scheme = "Cool";
+			chart.transitionColor(opt.color);
+		});
+
+		$('#x-asc').click(function(){
+			chart.sort('mx', 'asc');
+		})
+		$('#x-desc').click(function(){
+			chart.sort('mx', 'desc');
+		});
+		$('#y-asc').click(function(){
+			chart.sort('my', 'asc');
+		});
+		$('#y-desc').click(function(){
+			chart.sort('my', 'desc');
+		});
 
 	});
 </script>

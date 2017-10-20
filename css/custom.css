@@ -9,3 +9,16 @@
 .intro-small-img {
 	padding-top: 100px;
 }
+
+.chart {
+	/*position: relative;*/
+	width:100%;
+	height: 100%;
+}
+
+.ocean {
+	background-image: url(../images/ocean.jpg);
+	background-repeat: no-repeat;
+	background-size: cover;
+
+}

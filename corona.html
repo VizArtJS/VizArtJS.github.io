@@ -81,7 +81,6 @@
 				<div class="col-md-8">
 					<h1 class="hs-line-11 font-alt mb-20 mb-xs-0">Corona</h1>
 					<div class="hs-line-4 font-alt">
-						Corona/Radar. This work is based on Nadieh Bremer's <a href="http://bl.ocks.org/nbremer/21746a9668ffdf6d8242">Radar Chart Redesign.</a>
 					</div>
 				</div>
 
@@ -104,9 +103,10 @@
 				<a id="grouped" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Grouped</a>
 				<a id="stacked" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Stacked</a>
 				<a id="expanded" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Expanded</a>
-				<a id="red" href="#" class="btn btn-mod  btn-gray btn-round mb-10 mr-5">Red</a>
-				<a id="green" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Green</a>
-				<a id="warm" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Warm</a>
+				<a id="light" href="#" class="btn btn-mod  btn-gray btn-round mb-10 mr-5">Light</a>
+				<a id="dark" href="#" class="btn btn-mod  btn-gray btn-round mb-10 mr-5">Dark</a>
+				<a id="metro" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Metro</a>
+				<a id="dawn" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Dawn</a>
 				<a id="cool" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Cool</a>
 			</div>
 			<div class="work-full-media mb-80 mb-xs-40">
@@ -123,11 +123,11 @@
 
 						<!-- Project Detail -->
 						<div class="work-detail">
-							<h5 class="font-alt mt-0 mb-20">Bar</h5>
+							<h5 class="font-alt mt-0 mb-20">Corona</h5>
 							<div class="work-full-detail">
 								<p>
 									<strong>Renderer:</strong>
-									SVG
+									Canvas
 								</p>
 								<p>
 									<strong>Module:</strong>
@@ -135,7 +135,7 @@
 								</p>
 								<p>
 									<strong>Data:</strong>
-									Employee Attrition
+									Website Pages Views
 								</p>
 							</div>
 						</div>
@@ -155,39 +155,53 @@ const options = {
 		},
 
 	data: {
-		s: { name: 'Department', type: 'string', accessor: 'dep'},
-		x:
-			{ name: 'Age', type: 'string', accessor: 'age'}
-		,
+		s: { name: 'Page', type: 'string', accessor: 'page'},
+		x: { name: 'Hour', type: 'number', accessor: 'hour'},
 		y: [
-			{ name: 'Monthly Income', type: 'number', accessor: 'income'}
+				{ name: 'Views', type: 'number', accessor: 'views', yAxis: 0},
 		],
 	},
 
 	plots: {
-		levels: 0,				//How many levels or inner circles should there be drawn
-		maxValue: 0, 			//What is the value that the biggest circle will represent
-		labelFactor: 1.15, 	//How much farther than the radius of the outer circle should the labels be placed
-		wrapWidth: 60, 		//The number of pixels after which a label needs to be given a new line
-		opacityArea: 0.35, 	//The opacity of the area of the blob
-		dotRadius: 4, 			//The size of the colored circles of each blog
-		opacityCircles: 0.1, 	//The opacity of the circles of each blob
-		strokeWidth: 2, 		//The width of the stroke around each blob
-		innerRadiusRatio: 0.4,
-		showDots: false,
-		sortArea: true, // show smallest area on top
+		levels: 4,				//How many levels or inner circles should there be drawn
+		levelColor: 'rgba(0, 0, 0, 0.2)',
+		levelLabelColor: 'rgba(0, 0, 0, 0.8)',
+		levelLabelPosition: 'top', //'top', 'bottom', 'right'
+		levelLabel: function(d){ return d + ' views'},
+
+		axisLabel: function(d, i){ return i===0 ? '' : d + 'am'},
+		axisLabelOffset: 35,
+		axisLabelColor: 'rgba(0, 0, 0, 0.8)',
+
+		highlightStrokeColor: '#1f97e7',
+		highlightLabelColor: 'rgba(0, 0, 0, 1)',
+		highlightNodeColor: '#1f97e7',
+
+		strokeOpacity: 0,
+		strokeWidth: 1, 		//The width of the stroke around each blob
+
+		areaOpacity: 0.5, 	//The opacity of the area of the blob
+		gradientArea: false,
+
+		drawBoundary: true,
+		boundaryOffset: 30,
+		boundaryOpacity: 0.5,
+		boundaryGradient: ['white', '#eb3ba6'],
+
+		innerRadiusRatio: 0.6,
+		outerRadiusMargin: 60,
 		stackLayout: false, // stack areas
-		stackMethod: 'expand',
-		isArea: true	//If true the area and stroke will follow a round path (cardinal-closed),
+		stackMethod: 'zero',
+		isArea: true
 	}
 };
 
-const _data = [
-	{ age: 19, income: 9, dep: 'science' }
+const data = [
+	{ page: 'downloads/d3', views: 9, hour: 4 }
 ]
 
-const _chart = new Corona('#chart', options);
-_chart.render(_data);
+const chart = new Corona('#chart', options);
+chart.render(data);
 						</pre>
 					</div>
 
@@ -225,88 +239,174 @@ _chart.render(_data);
 <script type="text/javascript" src="js/masonry.pkgd.min.js"></script>
 <script type="text/javascript" src="js/jquery.simple-text-rotator.min.js"></script>
 <script type="text/javascript" src="js/all.js"></script>
+<script type="text/javascript" src="js/d3.js"></script>
 
 <script>
 	$(document).ready(() => {
 		PR.prettyPrint();
+
+		const DarkPreset = {
+			levels: 3,				//How many levels or inner circles should there be drawn
+			levelColor: 'rgba(255, 255, 255, 0.2)',
+			levelLabelColor: 'rgba(255, 255, 255, 0.8)',
+			levelLabelPosition: 'top', //'top', 'bottom', 'right'
+			levelLabel: function(d){ return d + ' views'},
+
+			axisLabel: function(d, i){ return i===0 ? '' : d + 'am'},
+			axisLabelOffset: 35,
+			axisLabelColor: 'rgba(255, 255, 255, 0.8)',
+
+			highlightStrokeColor: 'rgba(255, 255, 255, 0.7)',
+			highlightLabelColor: 'rgba(255, 255, 255, 1)',
+			highlightNodeColor: '#000000',
+
+			strokeOpacity: 0,
+			strokeWidth: 1, 		//The width of the stroke around each blob
+
+			areaOpacity: 0.5, 	//The opacity of the area of the blob
+			gradientArea: false,
+
+			drawBoundary: true,
+			boundaryOffset: 30,
+			boundaryOpacity: 0.5,
+			boundaryGradient: ['rgba(31, 151, 231, 0)', '#1f97e7'],
+
+			innerRadiusRatio: 0.5,
+			outerRadiusMargin: 60,
+			stackLayout: false, // stack areas
+			stackMethod: 'zero',
+			isArea: true	//If true the area and stroke will follow a round path (cardinal-closed),
+		};
+
+		const LightPreset = {
+			levels: 4,				//How many levels or inner circles should there be drawn
+			levelColor: 'rgba(0, 0, 0, 0.2)',
+			levelLabelColor: 'rgba(0, 0, 0, 0.8)',
+			levelLabelPosition: 'top', //'top', 'bottom', 'right'
+			levelLabel: function(d){ return d + ' views'},
+
+			axisLabel: function(d, i){ return i===0 ? '' : d + 'am'},
+			axisLabelOffset: 35,
+			axisLabelColor: 'rgba(0, 0, 0, 0.8)',
+
+			highlightStrokeColor: '#1f97e7',
+			highlightLabelColor: 'rgba(0, 0, 0, 1)',
+			highlightNodeColor: '#1f97e7',
+
+			strokeOpacity: 0,
+			strokeWidth: 1, 		//The width of the stroke around each blob
+
+			areaOpacity: 0.5, 	//The opacity of the area of the blob
+			gradientArea: false,
+
+			drawBoundary: true,
+			boundaryOffset: 30,
+			boundaryOpacity: 0.5,
+			boundaryGradient: ['white', '#eb3ba6'],
+
+			innerRadiusRatio: 0.6,
+			outerRadiusMargin: 60,
+			stackLayout: false, // stack areas
+			stackMethod: 'zero',
+			isArea: true	//If true the area and stroke will follow a round path (cardinal-closed),
+		};
+
+
 		const options = {
-			chart: {
-				height: 420
-			},
 			data: {
-				s: {name: 'Department', type: 'string', accessor: 'ms'},
-				x: {name: 'Age', type: 'string', accessor: 'mx'}
-				,
+				s: { name: 'Page', type: 'string', accessor: 'page'},
+				x: { name: 'Hour', type: 'number', accessor: 'hour'},
 				y: [
-					{name: 'Monthly Income', type: 'number', accessor: 'my'}
+					{ name: 'Views', type: 'number', accessor: 'views', yAxis: 0},
 				],
 			},
-
-			plots: {
-				levels: 0,				//How many levels or inner circles should there be drawn
-				maxValue: 0, 			//What is the value that the biggest circle will represent
-				labelFactor: 1.15, 	//How much farther than the radius of the outer circle should the labels be placed
-				wrapWidth: 60, 		//The number of pixels after which a label needs to be given a new line
-				opacityArea: 0.35, 	//The opacity of the area of the blob
-				dotRadius: 4, 			//The size of the colored circles of each blog
-				opacityCircles: 0.1, 	//The opacity of the circles of each blob
-				strokeWidth: 2, 		//The width of the stroke around each blob
-				innerRadiusRatio: 0.4,
-				showDots: false,
-				sortArea: true, // show smallest area on top
-				stackLayout: true, // stack areas
-				stackMethod: 'expand',
-				isArea: true	//If true the area and stroke will follow a round path (cardinal-closed),
+			plots: LightPreset,
+			color: {
+				scheme: [
+					'#ffe100',
+					'#ffbf00',
+					'#ff5730',
+					'#eb3ba6'
+				]
 			}
 		};
 
-		$.getJSON('./data/basic-stacked.json', res=>{
-			let chart = new VizArtBasic.Corona('#chart', options);
+		let chart = new VizArtBasic.Corona('#chart', options);
+
+		d3.csv('./data/corona_page_views.csv', function(err, res){
 			chart.render(res);
+		});
 
-			let _opt = chart.options();
+		let opt = chart.options();
 
-			// change color
-			$('#red').click(function () {
-				_opt.color.scheme = ['#ffe100', '#ffbf00', '#ff5730'];
-				chart.transitionColor(_opt.color);
-			});
+		// change color
 
-			$('#green').click(function () {
-				_opt.color.scheme = ['#f7fcb9', '#addd8e', '#31a354'];
-				chart.transitionColor(_opt.color)
-			});
+		$('#dark').click(function(){
+			opt.plots = DarkPreset;
+			chart.options(opt);
+			d3.select('#chart').classed('ocean', true);
+			chart.update();
+		});
 
-			$('#warm').click(function () {
-				_opt.color.scheme = "Warm";
-				chart.transitionColor(_opt.color)
-			});
-
-			$('#cool').click(function () {
-				_opt.color.scheme = "Cool";
-				chart.transitionColor(_opt.color);
-			});
-
-			$('#grouped').click(function () {
-				_opt.plots.stackLayout = false;
-				chart.options(_opt);
-				chart.update();
-			})
-			$('#stacked').click(function () {
-				_opt.plots.stackLayout = true;
-				_opt.plots.stackMethod = 'stacked';
-				chart.options(_opt);
-				chart.update();
-			});
-			$('#expanded').click(function () {
-				_opt.plots.stackLayout = true;
-				_opt.plots.stackMethod = 'expand';
-				chart.options(_opt);
-				chart.update();
-			});
+		$('#light').click(function(){
+			opt.plots = LightPreset;
+			chart.options(opt);
+			d3.select('#chart').classed('ocean', false);
+			chart.update();
 		});
 
 
+		$('#metro').click(function () {
+			opt.color.scheme = [
+				'#abe70f',
+				'#79e70f',
+				'#0fe71f',
+				'#0fe7d4',
+				'#10d9ec',
+				'#10c5ec',
+				'#1fb2e7',
+				'#1f97e7'
+			];
+			chart.options(opt);
+			opt.plots. boundaryGradient = ['rgba(16, 217, 236, 0)', '#10d9ec'];
+
+			chart.update();
+		});
+
+		$('#dawn').click(function () {
+			opt.color.scheme = [
+				'#ff5730'
+			];
+			opt.plots. boundaryGradient = ['rgba(255, 218, 78, 0)', '#FB8933'];
+			opt.plots.highlightStrokeColor = '#F03E1E';
+			opt.plots.highlightNodeColor = '#F03E1E';
+			chart.options(opt);
+			chart.update();
+		});
+
+		$('#cool').click(function () {
+			opt.color.scheme =  [
+//                '#1bcebf',
+//                '#24bbd2',
+//                '#1572ca',
+				'#1f33a1',
+//                '#5f26c1',
+			];
+			opt.plots. boundaryGradient = ['rgba(95, 38, 193, 0)', '#5f26c1'];
+
+			chart.options(opt);
+			chart.update();
+		});
+
+		$('#grouped').click(function () {
+			chart.groupedLayout();
+		})
+		$('#stacked').click(function () {
+			chart.stackLayout();
+		});
+		$('#expanded').click(function () {
+			chart.expandLayout();
+		});
 
 	});
 </script>

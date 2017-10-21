@@ -163,19 +163,19 @@ const options = {
 	},
 
 	plots: {
-		levels: 4,				//How many levels or inner circles should there be drawn
-		levelColor: 'rgba(0, 0, 0, 0.2)',
-		levelLabelColor: 'rgba(0, 0, 0, 0.8)',
+		levels: 3,				//How many levels or inner circles should there be drawn
+		levelColor: 'rgba(255, 255, 255, 0.2)',
+		levelLabelColor: 'rgba(255, 255, 255, 0.8)',
 		levelLabelPosition: 'top', //'top', 'bottom', 'right'
 		levelLabel: function(d){ return d + ' views'},
 
 		axisLabel: function(d, i){ return i===0 ? '' : d + 'am'},
 		axisLabelOffset: 35,
-		axisLabelColor: 'rgba(0, 0, 0, 0.8)',
+		axisLabelColor: 'rgba(255, 255, 255, 0.8)',
 
-		highlightStrokeColor: '#1f97e7',
-		highlightLabelColor: 'rgba(0, 0, 0, 1)',
-		highlightNodeColor: '#1f97e7',
+		highlightStrokeColor: 'rgba(255, 255, 255, 0.7)',
+		highlightLabelColor: 'rgba(255, 255, 255, 1)',
+		highlightNodeColor: '#000000',
 
 		strokeOpacity: 0,
 		strokeWidth: 1, 		//The width of the stroke around each blob
@@ -186,13 +186,13 @@ const options = {
 		drawBoundary: true,
 		boundaryOffset: 30,
 		boundaryOpacity: 0.5,
-		boundaryGradient: ['white', '#eb3ba6'],
+		boundaryGradient: ['rgba(31, 151, 231, 0)', '#1f97e7'],
 
-		innerRadiusRatio: 0.6,
+		innerRadiusRatio: 0.5,
 		outerRadiusMargin: 60,
 		stackLayout: false, // stack areas
 		stackMethod: 'zero',
-		isArea: true
+		isArea: true	//If true the area and stroke will follow a round path (cardinal-closed),
 	}
 };
 

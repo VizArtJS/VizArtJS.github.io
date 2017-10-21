@@ -3128,6 +3128,632 @@ function isFunction(value) {
   return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
 }
 
+var slice = Array.prototype.slice;
+
+var identity$1 = function (x) {
+  return x;
+};
+
+var top = 1;
+var right = 2;
+var bottom = 3;
+var left = 4;
+var epsilon = 1e-6;
+
+function translateX(x) {
+  return "translate(" + (x + 0.5) + ",0)";
+}
+
+function translateY(y) {
+  return "translate(0," + (y + 0.5) + ")";
+}
+
+function number(scale) {
+  return function (d) {
+    return +scale(d);
+  };
+}
+
+function center(scale) {
+  var offset = Math.max(0, scale.bandwidth() - 1) / 2; // Adjust for 0.5px offset.
+  if (scale.round()) offset = Math.round(offset);
+  return function (d) {
+    return +scale(d) + offset;
+  };
+}
+
+function entering() {
+  return !this.__axis;
+}
+
+function axis(orient, scale) {
+  var tickArguments = [],
+      tickValues = null,
+      tickFormat = null,
+      tickSizeInner = 6,
+      tickSizeOuter = 6,
+      tickPadding = 3,
+      k = orient === top || orient === left ? -1 : 1,
+      x = orient === left || orient === right ? "x" : "y",
+      transform = orient === top || orient === bottom ? translateX : translateY;
+
+  function axis(context) {
+    var values = tickValues == null ? scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain() : tickValues,
+        format = tickFormat == null ? scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : identity$1 : tickFormat,
+        spacing = Math.max(tickSizeInner, 0) + tickPadding,
+        range = scale.range(),
+        range0 = +range[0] + 0.5,
+        range1 = +range[range.length - 1] + 0.5,
+        position = (scale.bandwidth ? center : number)(scale.copy()),
+        selection = context.selection ? context.selection() : context,
+        path = selection.selectAll(".domain").data([null]),
+        tick = selection.selectAll(".tick").data(values, scale).order(),
+        tickExit = tick.exit(),
+        tickEnter = tick.enter().append("g").attr("class", "tick"),
+        line = tick.select("line"),
+        text = tick.select("text");
+
+    path = path.merge(path.enter().insert("path", ".tick").attr("class", "domain").attr("stroke", "#000"));
+
+    tick = tick.merge(tickEnter);
+
+    line = line.merge(tickEnter.append("line").attr("stroke", "#000").attr(x + "2", k * tickSizeInner));
+
+    text = text.merge(tickEnter.append("text").attr("fill", "#000").attr(x, k * spacing).attr("dy", orient === top ? "0em" : orient === bottom ? "0.71em" : "0.32em"));
+
+    if (context !== selection) {
+      path = path.transition(context);
+      tick = tick.transition(context);
+      line = line.transition(context);
+      text = text.transition(context);
+
+      tickExit = tickExit.transition(context).attr("opacity", epsilon).attr("transform", function (d) {
+        return isFinite(d = position(d)) ? transform(d) : this.getAttribute("transform");
+      });
+
+      tickEnter.attr("opacity", epsilon).attr("transform", function (d) {
+        var p = this.parentNode.__axis;return transform(p && isFinite(p = p(d)) ? p : position(d));
+      });
+    }
+
+    tickExit.remove();
+
+    path.attr("d", orient === left || orient == right ? "M" + k * tickSizeOuter + "," + range0 + "H0.5V" + range1 + "H" + k * tickSizeOuter : "M" + range0 + "," + k * tickSizeOuter + "V0.5H" + range1 + "V" + k * tickSizeOuter);
+
+    tick.attr("opacity", 1).attr("transform", function (d) {
+      return transform(position(d));
+    });
+
+    line.attr(x + "2", k * tickSizeInner);
+
+    text.attr(x, k * spacing).text(format);
+
+    selection.filter(entering).attr("fill", "none").attr("font-size", 10).attr("font-family", "sans-serif").attr("text-anchor", orient === right ? "start" : orient === left ? "end" : "middle");
+
+    selection.each(function () {
+      this.__axis = position;
+    });
+  }
+
+  axis.scale = function (_) {
+    return arguments.length ? (scale = _, axis) : scale;
+  };
+
+  axis.ticks = function () {
+    return tickArguments = slice.call(arguments), axis;
+  };
+
+  axis.tickArguments = function (_) {
+    return arguments.length ? (tickArguments = _ == null ? [] : slice.call(_), axis) : tickArguments.slice();
+  };
+
+  axis.tickValues = function (_) {
+    return arguments.length ? (tickValues = _ == null ? null : slice.call(_), axis) : tickValues && tickValues.slice();
+  };
+
+  axis.tickFormat = function (_) {
+    return arguments.length ? (tickFormat = _, axis) : tickFormat;
+  };
+
+  axis.tickSize = function (_) {
+    return arguments.length ? (tickSizeInner = tickSizeOuter = +_, axis) : tickSizeInner;
+  };
+
+  axis.tickSizeInner = function (_) {
+    return arguments.length ? (tickSizeInner = +_, axis) : tickSizeInner;
+  };
+
+  axis.tickSizeOuter = function (_) {
+    return arguments.length ? (tickSizeOuter = +_, axis) : tickSizeOuter;
+  };
+
+  axis.tickPadding = function (_) {
+    return arguments.length ? (tickPadding = +_, axis) : tickPadding;
+  };
+
+  return axis;
+}
+
+
+
+
+
+function axisBottom(scale) {
+  return axis(bottom, scale);
+}
+
+function axisLeft(scale) {
+  return axis(left, scale);
+}
+
+// Computes the decimal coefficient and exponent of the specified number x with
+// significant digits p, where x is positive and p is in [1, 21] or undefined.
+// For example, formatDecimal(1.23) returns ["123", 0].
+var formatDecimal = function (x, p) {
+  if ((i = (x = p ? x.toExponential(p - 1) : x.toExponential()).indexOf("e")) < 0) return null; // NaN, ±Infinity
+  var i,
+      coefficient = x.slice(0, i);
+
+  // The string returned by toExponential either has the form \d\.\d+e[-+]\d+
+  // (e.g., 1.2e+3) or the form \de[-+]\d+ (e.g., 1e+3).
+  return [coefficient.length > 1 ? coefficient[0] + coefficient.slice(2) : coefficient, +x.slice(i + 1)];
+};
+
+var exponent$1 = function (x) {
+  return x = formatDecimal(Math.abs(x)), x ? x[1] : NaN;
+};
+
+var formatGroup = function (grouping, thousands) {
+  return function (value, width) {
+    var i = value.length,
+        t = [],
+        j = 0,
+        g = grouping[0],
+        length = 0;
+
+    while (i > 0 && g > 0) {
+      if (length + g + 1 > width) g = Math.max(1, width - length);
+      t.push(value.substring(i -= g, i + g));
+      if ((length += g + 1) > width) break;
+      g = grouping[j = (j + 1) % grouping.length];
+    }
+
+    return t.reverse().join(thousands);
+  };
+};
+
+var formatNumerals = function (numerals) {
+  return function (value) {
+    return value.replace(/[0-9]/g, function (i) {
+      return numerals[+i];
+    });
+  };
+};
+
+var formatDefault = function (x, p) {
+  x = x.toPrecision(p);
+
+  out: for (var n = x.length, i = 1, i0 = -1, i1; i < n; ++i) {
+    switch (x[i]) {
+      case ".":
+        i0 = i1 = i;break;
+      case "0":
+        if (i0 === 0) i0 = i;i1 = i;break;
+      case "e":
+        break out;
+      default:
+        if (i0 > 0) i0 = 0;break;
+    }
+  }
+
+  return i0 > 0 ? x.slice(0, i0) + x.slice(i1 + 1) : x;
+};
+
+var prefixExponent;
+
+var formatPrefixAuto = function (x, p) {
+    var d = formatDecimal(x, p);
+    if (!d) return x + "";
+    var coefficient = d[0],
+        exponent = d[1],
+        i = exponent - (prefixExponent = Math.max(-8, Math.min(8, Math.floor(exponent / 3))) * 3) + 1,
+        n = coefficient.length;
+    return i === n ? coefficient : i > n ? coefficient + new Array(i - n + 1).join("0") : i > 0 ? coefficient.slice(0, i) + "." + coefficient.slice(i) : "0." + new Array(1 - i).join("0") + formatDecimal(x, Math.max(0, p + i - 1))[0]; // less than 1y!
+};
+
+var formatRounded = function (x, p) {
+    var d = formatDecimal(x, p);
+    if (!d) return x + "";
+    var coefficient = d[0],
+        exponent = d[1];
+    return exponent < 0 ? "0." + new Array(-exponent).join("0") + coefficient : coefficient.length > exponent + 1 ? coefficient.slice(0, exponent + 1) + "." + coefficient.slice(exponent + 1) : coefficient + new Array(exponent - coefficient.length + 2).join("0");
+};
+
+var formatTypes = {
+  "": formatDefault,
+  "%": function _(x, p) {
+    return (x * 100).toFixed(p);
+  },
+  "b": function b(x) {
+    return Math.round(x).toString(2);
+  },
+  "c": function c(x) {
+    return x + "";
+  },
+  "d": function d(x) {
+    return Math.round(x).toString(10);
+  },
+  "e": function e(x, p) {
+    return x.toExponential(p);
+  },
+  "f": function f(x, p) {
+    return x.toFixed(p);
+  },
+  "g": function g(x, p) {
+    return x.toPrecision(p);
+  },
+  "o": function o(x) {
+    return Math.round(x).toString(8);
+  },
+  "p": function p(x, _p) {
+    return formatRounded(x * 100, _p);
+  },
+  "r": formatRounded,
+  "s": formatPrefixAuto,
+  "X": function X(x) {
+    return Math.round(x).toString(16).toUpperCase();
+  },
+  "x": function x(_x) {
+    return Math.round(_x).toString(16);
+  }
+};
+
+var re = /^(?:(.)?([<>=^]))?([+\-\( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?([a-z%])?$/i;
+
+function formatSpecifier(specifier) {
+  return new FormatSpecifier(specifier);
+}
+
+formatSpecifier.prototype = FormatSpecifier.prototype; // instanceof
+
+function FormatSpecifier(specifier) {
+  if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier);
+
+  var match,
+      fill = match[1] || " ",
+      align = match[2] || ">",
+      sign = match[3] || "-",
+      symbol = match[4] || "",
+      zero = !!match[5],
+      width = match[6] && +match[6],
+      comma = !!match[7],
+      precision = match[8] && +match[8].slice(1),
+      type = match[9] || "";
+
+  // The "n" type is an alias for ",g".
+  if (type === "n") comma = true, type = "g";
+
+  // Map invalid types to the default format.
+  else if (!formatTypes[type]) type = "";
+
+  // If zero fill is specified, padding goes after sign and before digits.
+  if (zero || fill === "0" && align === "=") zero = true, fill = "0", align = "=";
+
+  this.fill = fill;
+  this.align = align;
+  this.sign = sign;
+  this.symbol = symbol;
+  this.zero = zero;
+  this.width = width;
+  this.comma = comma;
+  this.precision = precision;
+  this.type = type;
+}
+
+FormatSpecifier.prototype.toString = function () {
+  return this.fill + this.align + this.sign + this.symbol + (this.zero ? "0" : "") + (this.width == null ? "" : Math.max(1, this.width | 0)) + (this.comma ? "," : "") + (this.precision == null ? "" : "." + Math.max(0, this.precision | 0)) + this.type;
+};
+
+var identity$2 = function (x) {
+  return x;
+};
+
+var prefixes = ["y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y"];
+
+var formatLocale = function (locale) {
+  var group = locale.grouping && locale.thousands ? formatGroup(locale.grouping, locale.thousands) : identity$2,
+      currency = locale.currency,
+      decimal = locale.decimal,
+      numerals = locale.numerals ? formatNumerals(locale.numerals) : identity$2,
+      percent = locale.percent || "%";
+
+  function newFormat(specifier) {
+    specifier = formatSpecifier(specifier);
+
+    var fill = specifier.fill,
+        align = specifier.align,
+        sign = specifier.sign,
+        symbol = specifier.symbol,
+        zero = specifier.zero,
+        width = specifier.width,
+        comma = specifier.comma,
+        precision = specifier.precision,
+        type = specifier.type;
+
+    // Compute the prefix and suffix.
+    // For SI-prefix, the suffix is lazily computed.
+    var prefix = symbol === "$" ? currency[0] : symbol === "#" && /[boxX]/.test(type) ? "0" + type.toLowerCase() : "",
+        suffix = symbol === "$" ? currency[1] : /[%p]/.test(type) ? percent : "";
+
+    // What format function should we use?
+    // Is this an integer type?
+    // Can this type generate exponential notation?
+    var formatType = formatTypes[type],
+        maybeSuffix = !type || /[defgprs%]/.test(type);
+
+    // Set the default precision if not specified,
+    // or clamp the specified precision to the supported range.
+    // For significant precision, it must be in [1, 21].
+    // For fixed precision, it must be in [0, 20].
+    precision = precision == null ? type ? 6 : 12 : /[gprs]/.test(type) ? Math.max(1, Math.min(21, precision)) : Math.max(0, Math.min(20, precision));
+
+    function format(value) {
+      var valuePrefix = prefix,
+          valueSuffix = suffix,
+          i,
+          n,
+          c;
+
+      if (type === "c") {
+        valueSuffix = formatType(value) + valueSuffix;
+        value = "";
+      } else {
+        value = +value;
+
+        // Perform the initial formatting.
+        var valueNegative = value < 0;
+        value = formatType(Math.abs(value), precision);
+
+        // If a negative value rounds to zero during formatting, treat as positive.
+        if (valueNegative && +value === 0) valueNegative = false;
+
+        // Compute the prefix and suffix.
+        valuePrefix = (valueNegative ? sign === "(" ? sign : "-" : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
+        valueSuffix = valueSuffix + (type === "s" ? prefixes[8 + prefixExponent / 3] : "") + (valueNegative && sign === "(" ? ")" : "");
+
+        // Break the formatted value into the integer “value” part that can be
+        // grouped, and fractional or exponential “suffix” part that is not.
+        if (maybeSuffix) {
+          i = -1, n = value.length;
+          while (++i < n) {
+            if (c = value.charCodeAt(i), 48 > c || c > 57) {
+              valueSuffix = (c === 46 ? decimal + value.slice(i + 1) : value.slice(i)) + valueSuffix;
+              value = value.slice(0, i);
+              break;
+            }
+          }
+        }
+      }
+
+      // If the fill character is not "0", grouping is applied before padding.
+      if (comma && !zero) value = group(value, Infinity);
+
+      // Compute the padding.
+      var length = valuePrefix.length + value.length + valueSuffix.length,
+          padding = length < width ? new Array(width - length + 1).join(fill) : "";
+
+      // If the fill character is "0", grouping is applied after padding.
+      if (comma && zero) value = group(padding + value, padding.length ? width - valueSuffix.length : Infinity), padding = "";
+
+      // Reconstruct the final output based on the desired alignment.
+      switch (align) {
+        case "<":
+          value = valuePrefix + value + valueSuffix + padding;break;
+        case "=":
+          value = valuePrefix + padding + value + valueSuffix;break;
+        case "^":
+          value = padding.slice(0, length = padding.length >> 1) + valuePrefix + value + valueSuffix + padding.slice(length);break;
+        default:
+          value = padding + valuePrefix + value + valueSuffix;break;
+      }
+
+      return numerals(value);
+    }
+
+    format.toString = function () {
+      return specifier + "";
+    };
+
+    return format;
+  }
+
+  function formatPrefix(specifier, value) {
+    var f = newFormat((specifier = formatSpecifier(specifier), specifier.type = "f", specifier)),
+        e = Math.max(-8, Math.min(8, Math.floor(exponent$1(value) / 3))) * 3,
+        k = Math.pow(10, -e),
+        prefix = prefixes[8 + e / 3];
+    return function (value) {
+      return f(k * value) + prefix;
+    };
+  }
+
+  return {
+    format: newFormat,
+    formatPrefix: formatPrefix
+  };
+};
+
+var locale;
+var format;
+var formatPrefix;
+
+defaultLocale({
+  decimal: ".",
+  thousands: ",",
+  grouping: [3],
+  currency: ["$", ""]
+});
+
+function defaultLocale(definition) {
+  locale = formatLocale(definition);
+  format = locale.format;
+  formatPrefix = locale.formatPrefix;
+  return locale;
+}
+
+var precisionFixed = function (step) {
+  return Math.max(0, -exponent$1(Math.abs(step)));
+};
+
+var precisionPrefix = function (step, value) {
+  return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent$1(value) / 3))) * 3 - exponent$1(Math.abs(step)));
+};
+
+var precisionRound = function (step, max) {
+  step = Math.abs(step), max = Math.abs(max) - step;
+  return Math.max(0, exponent$1(max) - exponent$1(step)) + 1;
+};
+
+/**
+ * Checks if `value` is object-like. A value is object-like if it's not `null`
+ * and has a `typeof` result of "object".
+ *
+ * @static
+ * @memberOf _
+ * @since 4.0.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+ * @example
+ *
+ * _.isObjectLike({});
+ * // => true
+ *
+ * _.isObjectLike([1, 2, 3]);
+ * // => true
+ *
+ * _.isObjectLike(_.noop);
+ * // => false
+ *
+ * _.isObjectLike(null);
+ * // => false
+ */
+function isObjectLike(value) {
+  return value != null && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) == 'object';
+}
+
+var numberTag = '[object Number]';
+
+/**
+ * Checks if `value` is classified as a `Number` primitive or object.
+ *
+ * **Note:** To exclude `Infinity`, `-Infinity`, and `NaN`, which are
+ * classified as numbers, use the `_.isFinite` method.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a number, else `false`.
+ * @example
+ *
+ * _.isNumber(3);
+ * // => true
+ *
+ * _.isNumber(Number.MIN_VALUE);
+ * // => true
+ *
+ * _.isNumber(Infinity);
+ * // => true
+ *
+ * _.isNumber('3');
+ * // => false
+ */
+function isNumber(value) {
+  return typeof value == 'number' || isObjectLike(value) && baseGetTag(value) == numberTag;
+}
+
+/**
+ * Checks if `value` is classified as an `Array` object.
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is an array, else `false`.
+ * @example
+ *
+ * _.isArray([1, 2, 3]);
+ * // => true
+ *
+ * _.isArray(document.body.children);
+ * // => false
+ *
+ * _.isArray('abc');
+ * // => false
+ *
+ * _.isArray(_.noop);
+ * // => false
+ */
+var isArray = Array.isArray;
+
+var stringTag = '[object String]';
+
+/**
+ * Checks if `value` is classified as a `String` primitive or object.
+ *
+ * @static
+ * @since 0.1.0
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a string, else `false`.
+ * @example
+ *
+ * _.isString('abc');
+ * // => true
+ *
+ * _.isString(1);
+ * // => false
+ */
+function isString(value) {
+  return typeof value == 'string' || !isArray(value) && isObjectLike(value) && baseGetTag(value) == stringTag;
+}
+
+var nativeIsFinite = root$2.isFinite;
+
+/**
+ * Checks if `value` is a finite primitive number.
+ *
+ * **Note:** This method is based on
+ * [`Number.isFinite`](https://mdn.io/Number/isFinite).
+ *
+ * @static
+ * @memberOf _
+ * @since 0.1.0
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a finite number, else `false`.
+ * @example
+ *
+ * _.isFinite(3);
+ * // => true
+ *
+ * _.isFinite(Number.MIN_VALUE);
+ * // => true
+ *
+ * _.isFinite(Infinity);
+ * // => false
+ *
+ * _.isFinite('3');
+ * // => false
+ */
+function isFinite$1(value) {
+  return typeof value == 'number' && nativeIsFinite(value);
+}
+
 var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 
@@ -5957,7 +6583,7 @@ function ascendingComparator(f) {
 var ascendingBisect = bisector(ascending$1);
 var bisectRight = ascendingBisect.right;
 
-var number = function (x) {
+var number$1 = function (x) {
   return x === null ? NaN : +x;
 };
 
@@ -6068,7 +6694,7 @@ function tickStep(start, stop, count) {
 }
 
 var threshold = function (values, p, valueof) {
-  if (valueof == null) valueof = number;
+  if (valueof == null) valueof = number$1;
   if (!(n = values.length)) return;
   if ((p = +p) <= 0 || n < 2) return +valueof(values[0], 0, values);
   if (p >= 1) return +valueof(values[n - 1], n - 1, values);
@@ -6264,7 +6890,7 @@ function map$2(object, f) {
 var array$1 = Array.prototype;
 
 var map$4 = array$1.map;
-var slice$1 = array$1.slice;
+var slice$2 = array$1.slice;
 
 var implicit = { name: "implicit" };
 
@@ -6273,7 +6899,7 @@ function ordinal(range) {
       domain = [],
       unknown = implicit;
 
-  range = range == null ? [] : slice$1.call(range);
+  range = range == null ? [] : slice$2.call(range);
 
   function scale(d) {
     var key = d + "",
@@ -6298,7 +6924,7 @@ function ordinal(range) {
   };
 
   scale.range = function (_) {
-    return arguments.length ? (range = slice$1.call(_), scale) : range.slice();
+    return arguments.length ? (range = slice$2.call(_), scale) : range.slice();
   };
 
   scale.unknown = function (_) {
@@ -6413,7 +7039,7 @@ var constant$4 = function (x) {
   };
 };
 
-var number$1 = function (x) {
+var number$2 = function (x) {
   return +x;
 };
 
@@ -6507,15 +7133,15 @@ function continuous(deinterpolate, reinterpolate) {
   };
 
   scale.domain = function (_) {
-    return arguments.length ? (domain = map$4.call(_, number$1), rescale()) : domain.slice();
+    return arguments.length ? (domain = map$4.call(_, number$2), rescale()) : domain.slice();
   };
 
   scale.range = function (_) {
-    return arguments.length ? (range = slice$1.call(_), rescale()) : range.slice();
+    return arguments.length ? (range = slice$2.call(_), rescale()) : range.slice();
   };
 
   scale.rangeRound = function (_) {
-    return range = slice$1.call(_), interpolate$$1 = interpolateRound, rescale();
+    return range = slice$2.call(_), interpolate$$1 = interpolateRound, rescale();
   };
 
   scale.clamp = function (_) {
@@ -6528,334 +7154,6 @@ function continuous(deinterpolate, reinterpolate) {
 
   return rescale();
 }
-
-// Computes the decimal coefficient and exponent of the specified number x with
-// significant digits p, where x is positive and p is in [1, 21] or undefined.
-// For example, formatDecimal(1.23) returns ["123", 0].
-var formatDecimal = function (x, p) {
-  if ((i = (x = p ? x.toExponential(p - 1) : x.toExponential()).indexOf("e")) < 0) return null; // NaN, ±Infinity
-  var i,
-      coefficient = x.slice(0, i);
-
-  // The string returned by toExponential either has the form \d\.\d+e[-+]\d+
-  // (e.g., 1.2e+3) or the form \de[-+]\d+ (e.g., 1e+3).
-  return [coefficient.length > 1 ? coefficient[0] + coefficient.slice(2) : coefficient, +x.slice(i + 1)];
-};
-
-var exponent$1 = function (x) {
-  return x = formatDecimal(Math.abs(x)), x ? x[1] : NaN;
-};
-
-var formatGroup = function (grouping, thousands) {
-  return function (value, width) {
-    var i = value.length,
-        t = [],
-        j = 0,
-        g = grouping[0],
-        length = 0;
-
-    while (i > 0 && g > 0) {
-      if (length + g + 1 > width) g = Math.max(1, width - length);
-      t.push(value.substring(i -= g, i + g));
-      if ((length += g + 1) > width) break;
-      g = grouping[j = (j + 1) % grouping.length];
-    }
-
-    return t.reverse().join(thousands);
-  };
-};
-
-var formatNumerals = function (numerals) {
-  return function (value) {
-    return value.replace(/[0-9]/g, function (i) {
-      return numerals[+i];
-    });
-  };
-};
-
-var formatDefault = function (x, p) {
-  x = x.toPrecision(p);
-
-  out: for (var n = x.length, i = 1, i0 = -1, i1; i < n; ++i) {
-    switch (x[i]) {
-      case ".":
-        i0 = i1 = i;break;
-      case "0":
-        if (i0 === 0) i0 = i;i1 = i;break;
-      case "e":
-        break out;
-      default:
-        if (i0 > 0) i0 = 0;break;
-    }
-  }
-
-  return i0 > 0 ? x.slice(0, i0) + x.slice(i1 + 1) : x;
-};
-
-var prefixExponent;
-
-var formatPrefixAuto = function (x, p) {
-    var d = formatDecimal(x, p);
-    if (!d) return x + "";
-    var coefficient = d[0],
-        exponent = d[1],
-        i = exponent - (prefixExponent = Math.max(-8, Math.min(8, Math.floor(exponent / 3))) * 3) + 1,
-        n = coefficient.length;
-    return i === n ? coefficient : i > n ? coefficient + new Array(i - n + 1).join("0") : i > 0 ? coefficient.slice(0, i) + "." + coefficient.slice(i) : "0." + new Array(1 - i).join("0") + formatDecimal(x, Math.max(0, p + i - 1))[0]; // less than 1y!
-};
-
-var formatRounded = function (x, p) {
-    var d = formatDecimal(x, p);
-    if (!d) return x + "";
-    var coefficient = d[0],
-        exponent = d[1];
-    return exponent < 0 ? "0." + new Array(-exponent).join("0") + coefficient : coefficient.length > exponent + 1 ? coefficient.slice(0, exponent + 1) + "." + coefficient.slice(exponent + 1) : coefficient + new Array(exponent - coefficient.length + 2).join("0");
-};
-
-var formatTypes = {
-  "": formatDefault,
-  "%": function _(x, p) {
-    return (x * 100).toFixed(p);
-  },
-  "b": function b(x) {
-    return Math.round(x).toString(2);
-  },
-  "c": function c(x) {
-    return x + "";
-  },
-  "d": function d(x) {
-    return Math.round(x).toString(10);
-  },
-  "e": function e(x, p) {
-    return x.toExponential(p);
-  },
-  "f": function f(x, p) {
-    return x.toFixed(p);
-  },
-  "g": function g(x, p) {
-    return x.toPrecision(p);
-  },
-  "o": function o(x) {
-    return Math.round(x).toString(8);
-  },
-  "p": function p(x, _p) {
-    return formatRounded(x * 100, _p);
-  },
-  "r": formatRounded,
-  "s": formatPrefixAuto,
-  "X": function X(x) {
-    return Math.round(x).toString(16).toUpperCase();
-  },
-  "x": function x(_x) {
-    return Math.round(_x).toString(16);
-  }
-};
-
-var re = /^(?:(.)?([<>=^]))?([+\-\( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?([a-z%])?$/i;
-
-function formatSpecifier(specifier) {
-  return new FormatSpecifier(specifier);
-}
-
-formatSpecifier.prototype = FormatSpecifier.prototype; // instanceof
-
-function FormatSpecifier(specifier) {
-  if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier);
-
-  var match,
-      fill = match[1] || " ",
-      align = match[2] || ">",
-      sign = match[3] || "-",
-      symbol = match[4] || "",
-      zero = !!match[5],
-      width = match[6] && +match[6],
-      comma = !!match[7],
-      precision = match[8] && +match[8].slice(1),
-      type = match[9] || "";
-
-  // The "n" type is an alias for ",g".
-  if (type === "n") comma = true, type = "g";
-
-  // Map invalid types to the default format.
-  else if (!formatTypes[type]) type = "";
-
-  // If zero fill is specified, padding goes after sign and before digits.
-  if (zero || fill === "0" && align === "=") zero = true, fill = "0", align = "=";
-
-  this.fill = fill;
-  this.align = align;
-  this.sign = sign;
-  this.symbol = symbol;
-  this.zero = zero;
-  this.width = width;
-  this.comma = comma;
-  this.precision = precision;
-  this.type = type;
-}
-
-FormatSpecifier.prototype.toString = function () {
-  return this.fill + this.align + this.sign + this.symbol + (this.zero ? "0" : "") + (this.width == null ? "" : Math.max(1, this.width | 0)) + (this.comma ? "," : "") + (this.precision == null ? "" : "." + Math.max(0, this.precision | 0)) + this.type;
-};
-
-var identity$4 = function (x) {
-  return x;
-};
-
-var prefixes = ["y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y"];
-
-var formatLocale = function (locale) {
-  var group = locale.grouping && locale.thousands ? formatGroup(locale.grouping, locale.thousands) : identity$4,
-      currency = locale.currency,
-      decimal = locale.decimal,
-      numerals = locale.numerals ? formatNumerals(locale.numerals) : identity$4,
-      percent = locale.percent || "%";
-
-  function newFormat(specifier) {
-    specifier = formatSpecifier(specifier);
-
-    var fill = specifier.fill,
-        align = specifier.align,
-        sign = specifier.sign,
-        symbol = specifier.symbol,
-        zero = specifier.zero,
-        width = specifier.width,
-        comma = specifier.comma,
-        precision = specifier.precision,
-        type = specifier.type;
-
-    // Compute the prefix and suffix.
-    // For SI-prefix, the suffix is lazily computed.
-    var prefix = symbol === "$" ? currency[0] : symbol === "#" && /[boxX]/.test(type) ? "0" + type.toLowerCase() : "",
-        suffix = symbol === "$" ? currency[1] : /[%p]/.test(type) ? percent : "";
-
-    // What format function should we use?
-    // Is this an integer type?
-    // Can this type generate exponential notation?
-    var formatType = formatTypes[type],
-        maybeSuffix = !type || /[defgprs%]/.test(type);
-
-    // Set the default precision if not specified,
-    // or clamp the specified precision to the supported range.
-    // For significant precision, it must be in [1, 21].
-    // For fixed precision, it must be in [0, 20].
-    precision = precision == null ? type ? 6 : 12 : /[gprs]/.test(type) ? Math.max(1, Math.min(21, precision)) : Math.max(0, Math.min(20, precision));
-
-    function format(value) {
-      var valuePrefix = prefix,
-          valueSuffix = suffix,
-          i,
-          n,
-          c;
-
-      if (type === "c") {
-        valueSuffix = formatType(value) + valueSuffix;
-        value = "";
-      } else {
-        value = +value;
-
-        // Perform the initial formatting.
-        var valueNegative = value < 0;
-        value = formatType(Math.abs(value), precision);
-
-        // If a negative value rounds to zero during formatting, treat as positive.
-        if (valueNegative && +value === 0) valueNegative = false;
-
-        // Compute the prefix and suffix.
-        valuePrefix = (valueNegative ? sign === "(" ? sign : "-" : sign === "-" || sign === "(" ? "" : sign) + valuePrefix;
-        valueSuffix = valueSuffix + (type === "s" ? prefixes[8 + prefixExponent / 3] : "") + (valueNegative && sign === "(" ? ")" : "");
-
-        // Break the formatted value into the integer “value” part that can be
-        // grouped, and fractional or exponential “suffix” part that is not.
-        if (maybeSuffix) {
-          i = -1, n = value.length;
-          while (++i < n) {
-            if (c = value.charCodeAt(i), 48 > c || c > 57) {
-              valueSuffix = (c === 46 ? decimal + value.slice(i + 1) : value.slice(i)) + valueSuffix;
-              value = value.slice(0, i);
-              break;
-            }
-          }
-        }
-      }
-
-      // If the fill character is not "0", grouping is applied before padding.
-      if (comma && !zero) value = group(value, Infinity);
-
-      // Compute the padding.
-      var length = valuePrefix.length + value.length + valueSuffix.length,
-          padding = length < width ? new Array(width - length + 1).join(fill) : "";
-
-      // If the fill character is "0", grouping is applied after padding.
-      if (comma && zero) value = group(padding + value, padding.length ? width - valueSuffix.length : Infinity), padding = "";
-
-      // Reconstruct the final output based on the desired alignment.
-      switch (align) {
-        case "<":
-          value = valuePrefix + value + valueSuffix + padding;break;
-        case "=":
-          value = valuePrefix + padding + value + valueSuffix;break;
-        case "^":
-          value = padding.slice(0, length = padding.length >> 1) + valuePrefix + value + valueSuffix + padding.slice(length);break;
-        default:
-          value = padding + valuePrefix + value + valueSuffix;break;
-      }
-
-      return numerals(value);
-    }
-
-    format.toString = function () {
-      return specifier + "";
-    };
-
-    return format;
-  }
-
-  function formatPrefix(specifier, value) {
-    var f = newFormat((specifier = formatSpecifier(specifier), specifier.type = "f", specifier)),
-        e = Math.max(-8, Math.min(8, Math.floor(exponent$1(value) / 3))) * 3,
-        k = Math.pow(10, -e),
-        prefix = prefixes[8 + e / 3];
-    return function (value) {
-      return f(k * value) + prefix;
-    };
-  }
-
-  return {
-    format: newFormat,
-    formatPrefix: formatPrefix
-  };
-};
-
-var locale;
-var format;
-var formatPrefix;
-
-defaultLocale({
-  decimal: ".",
-  thousands: ",",
-  grouping: [3],
-  currency: ["$", ""]
-});
-
-function defaultLocale(definition) {
-  locale = formatLocale(definition);
-  format = locale.format;
-  formatPrefix = locale.formatPrefix;
-  return locale;
-}
-
-var precisionFixed = function (step) {
-  return Math.max(0, -exponent$1(Math.abs(step)));
-};
-
-var precisionPrefix = function (step, value) {
-  return Math.max(0, Math.max(-8, Math.min(8, Math.floor(exponent$1(value) / 3))) * 3 - exponent$1(Math.abs(step)));
-};
-
-var precisionRound = function (step, max) {
-  step = Math.abs(step), max = Math.abs(max) - step;
-  return Math.max(0, exponent$1(max) - exponent$1(step)) + 1;
-};
 
 var tickFormat = function (domain, count, specifier) {
   var start = domain[0],
@@ -7006,7 +7304,7 @@ function quantile$$1() {
   };
 
   scale.range = function (_) {
-    return arguments.length ? (range = slice$1.call(_), rescale()) : range.slice();
+    return arguments.length ? (range = slice$2.call(_), rescale()) : range.slice();
   };
 
   scale.quantiles = function () {
@@ -7986,7 +8284,7 @@ function date$1(t) {
   return new Date(t);
 }
 
-function number$2(t) {
+function number$3(t) {
   return t instanceof Date ? +t : +new Date(+t);
 }
 
@@ -8042,7 +8340,7 @@ function calendar(year$$1, month$$1, week, day$$1, hour$$1, minute$$1, second$$1
   };
 
   scale.domain = function (_) {
-    return arguments.length ? domain(map$4.call(_, number$2)) : domain().map(date$1);
+    return arguments.length ? domain(map$4.call(_, number$3)) : domain().map(date$1);
   };
 
   scale.ticks = function (interval, step) {
@@ -8688,7 +8986,7 @@ function clipEdges(x0, y0, x1, y1) {
       edge;
 
   while (i--) {
-    if (!connectEdge(edge = edges[i], x0, y0, x1, y1) || !clipEdge(edge, x0, y0, x1, y1) || !(Math.abs(edge[0][0] - edge[1][0]) > epsilon || Math.abs(edge[0][1] - edge[1][1]) > epsilon)) {
+    if (!connectEdge(edge = edges[i], x0, y0, x1, y1) || !clipEdge(edge, x0, y0, x1, y1) || !(Math.abs(edge[0][0] - edge[1][0]) > epsilon$1 || Math.abs(edge[0][1] - edge[1][1]) > epsilon$1)) {
       delete edges[i];
     }
   }
@@ -8772,8 +9070,8 @@ function clipCells(x0, y0, x1, y1) {
       while (iHalfedge < nHalfedges) {
         end = cellHalfedgeEnd(cell, edges[halfedges[iHalfedge]]), endX = end[0], endY = end[1];
         start = cellHalfedgeStart(cell, edges[halfedges[++iHalfedge % nHalfedges]]), startX = start[0], startY = start[1];
-        if (Math.abs(endX - startX) > epsilon || Math.abs(endY - startY) > epsilon) {
-          halfedges.splice(iHalfedge, 0, edges.push(createBorderEdge(site, end, Math.abs(endX - x0) < epsilon && y1 - endY > epsilon ? [x0, Math.abs(startX - x0) < epsilon ? startY : y1] : Math.abs(endY - y1) < epsilon && x1 - endX > epsilon ? [Math.abs(startY - y1) < epsilon ? startX : x1, y1] : Math.abs(endX - x1) < epsilon && endY - y0 > epsilon ? [x1, Math.abs(startX - x1) < epsilon ? startY : y0] : Math.abs(endY - y0) < epsilon && endX - x0 > epsilon ? [Math.abs(startY - y0) < epsilon ? startX : x0, y0] : null)) - 1);
+        if (Math.abs(endX - startX) > epsilon$1 || Math.abs(endY - startY) > epsilon$1) {
+          halfedges.splice(iHalfedge, 0, edges.push(createBorderEdge(site, end, Math.abs(endX - x0) < epsilon$1 && y1 - endY > epsilon$1 ? [x0, Math.abs(startX - x0) < epsilon$1 ? startY : y1] : Math.abs(endY - y1) < epsilon$1 && x1 - endX > epsilon$1 ? [Math.abs(startY - y1) < epsilon$1 ? startX : x1, y1] : Math.abs(endX - x1) < epsilon$1 && endY - y0 > epsilon$1 ? [x1, Math.abs(startX - x1) < epsilon$1 ? startY : y0] : Math.abs(endY - y0) < epsilon$1 && endX - x0 > epsilon$1 ? [Math.abs(startY - y0) < epsilon$1 ? startX : x0, y0] : null)) - 1);
           ++nHalfedges;
         }
       }
@@ -8925,7 +9223,7 @@ function removeBeach(beach) {
   detachBeach(beach);
 
   var lArc = previous;
-  while (lArc.circle && Math.abs(x - lArc.circle.x) < epsilon && Math.abs(y - lArc.circle.cy) < epsilon) {
+  while (lArc.circle && Math.abs(x - lArc.circle.x) < epsilon$1 && Math.abs(y - lArc.circle.cy) < epsilon$1) {
     previous = lArc.P;
     disappearing.unshift(lArc);
     detachBeach(lArc);
@@ -8936,7 +9234,7 @@ function removeBeach(beach) {
   detachCircle(lArc);
 
   var rArc = next;
-  while (rArc.circle && Math.abs(x - rArc.circle.x) < epsilon && Math.abs(y - rArc.circle.cy) < epsilon) {
+  while (rArc.circle && Math.abs(x - rArc.circle.x) < epsilon$1 && Math.abs(y - rArc.circle.cy) < epsilon$1) {
     next = rArc.N;
     disappearing.push(rArc);
     detachBeach(rArc);
@@ -8973,19 +9271,19 @@ function addBeach(site) {
 
   while (node) {
     dxl = leftBreakPoint(node, directrix) - x;
-    if (dxl > epsilon) node = node.L;else {
+    if (dxl > epsilon$1) node = node.L;else {
       dxr = x - rightBreakPoint(node, directrix);
-      if (dxr > epsilon) {
+      if (dxr > epsilon$1) {
         if (!node.R) {
           lArc = node;
           break;
         }
         node = node.R;
       } else {
-        if (dxl > -epsilon) {
+        if (dxl > -epsilon$1) {
           lArc = node.P;
           rArc = node;
-        } else if (dxr > -epsilon) {
+        } else if (dxr > -epsilon$1) {
           lArc = node;
           rArc = node.N;
         } else {
@@ -9076,7 +9374,7 @@ function rightBreakPoint(arc, directrix) {
   return site[1] === directrix ? site[0] : Infinity;
 }
 
-var epsilon = 1e-6;
+var epsilon$1 = 1e-6;
 var epsilon2$1 = 1e-12;
 var beaches;
 var cells;
@@ -9228,7 +9526,7 @@ var voronoi = function () {
 
   function voronoi(data) {
     return new Diagram(data.map(function (d, i) {
-      var s = [Math.round(x$$1(d, i, data) / epsilon) * epsilon, Math.round(y$$1(d, i, data) / epsilon) * epsilon];
+      var s = [Math.round(x$$1(d, i, data) / epsilon$1) * epsilon$1, Math.round(y$$1(d, i, data) / epsilon$1) * epsilon$1];
       s.index = i;
       s.data = d;
       return s;
@@ -10066,7 +10364,7 @@ function baseGetTag$2(value) {
  * _.isObjectLike(null);
  * // => false
  */
-function isObjectLike(value) {
+function isObjectLike$2(value) {
     return value != null && (typeof value === 'undefined' ? 'undefined' : _typeof$1(value)) == 'object';
 }
 
@@ -10081,7 +10379,7 @@ var argsTag = '[object Arguments]';
  * @returns {boolean} Returns `true` if `value` is an `arguments` object,
  */
 function baseIsArguments(value) {
-    return isObjectLike(value) && baseGetTag$2(value) == argsTag;
+    return isObjectLike$2(value) && baseGetTag$2(value) == argsTag;
 }
 
 /** Used for built-in method references. */
@@ -10114,7 +10412,7 @@ var propertyIsEnumerable = objectProto$1$1.propertyIsEnumerable;
 var isArguments = baseIsArguments(function () {
     return arguments;
 }()) ? baseIsArguments : function (value) {
-    return isObjectLike(value) && hasOwnProperty$1.call(value, 'callee') && !propertyIsEnumerable.call(value, 'callee');
+    return isObjectLike$2(value) && hasOwnProperty$1.call(value, 'callee') && !propertyIsEnumerable.call(value, 'callee');
 };
 
 /**
@@ -10140,7 +10438,7 @@ var isArguments = baseIsArguments(function () {
  * _.isArray(_.noop);
  * // => false
  */
-var isArray = Array.isArray;
+var isArray$2 = Array.isArray;
 
 /**
  * This method returns `false`.
@@ -10253,11 +10551,11 @@ var dateTag = '[object Date]';
 var errorTag = '[object Error]';
 var funcTag$1 = '[object Function]';
 var mapTag = '[object Map]';
-var numberTag = '[object Number]';
+var numberTag$1 = '[object Number]';
 var objectTag = '[object Object]';
 var regexpTag = '[object RegExp]';
 var setTag = '[object Set]';
-var stringTag = '[object String]';
+var stringTag$1 = '[object String]';
 var weakMapTag = '[object WeakMap]';
 
 var arrayBufferTag = '[object ArrayBuffer]';
@@ -10275,7 +10573,7 @@ var uint32Tag = '[object Uint32Array]';
 /** Used to identify `toStringTag` values of typed arrays. */
 var typedArrayTags = {};
 typedArrayTags[float32Tag] = typedArrayTags[float64Tag] = typedArrayTags[int8Tag] = typedArrayTags[int16Tag] = typedArrayTags[int32Tag] = typedArrayTags[uint8Tag] = typedArrayTags[uint8ClampedTag] = typedArrayTags[uint16Tag] = typedArrayTags[uint32Tag] = true;
-typedArrayTags[argsTag$1] = typedArrayTags[arrayTag] = typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] = typedArrayTags[dataViewTag] = typedArrayTags[dateTag] = typedArrayTags[errorTag] = typedArrayTags[funcTag$1] = typedArrayTags[mapTag] = typedArrayTags[numberTag] = typedArrayTags[objectTag] = typedArrayTags[regexpTag] = typedArrayTags[setTag] = typedArrayTags[stringTag] = typedArrayTags[weakMapTag] = false;
+typedArrayTags[argsTag$1] = typedArrayTags[arrayTag] = typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] = typedArrayTags[dataViewTag] = typedArrayTags[dateTag] = typedArrayTags[errorTag] = typedArrayTags[funcTag$1] = typedArrayTags[mapTag] = typedArrayTags[numberTag$1] = typedArrayTags[objectTag] = typedArrayTags[regexpTag] = typedArrayTags[setTag] = typedArrayTags[stringTag$1] = typedArrayTags[weakMapTag] = false;
 
 /**
  * The base implementation of `_.isTypedArray` without Node.js optimizations.
@@ -10285,7 +10583,7 @@ typedArrayTags[argsTag$1] = typedArrayTags[arrayTag] = typedArrayTags[arrayBuffe
  * @returns {boolean} Returns `true` if `value` is a typed array, else `false`.
  */
 function baseIsTypedArray(value) {
-    return isObjectLike(value) && isLength(value.length) && !!typedArrayTags[baseGetTag$2(value)];
+    return isObjectLike$2(value) && isLength(value.length) && !!typedArrayTags[baseGetTag$2(value)];
 }
 
 /**
@@ -10357,7 +10655,7 @@ var hasOwnProperty$1$1 = objectProto$2$1.hasOwnProperty;
  * @returns {Array} Returns the array of property names.
  */
 function arrayLikeKeys(value, inherited) {
-    var isArr = isArray(value),
+    var isArr = isArray$2(value),
         isArg = !isArr && isArguments(value),
         isBuff = !isArr && !isArg && isBuffer(value),
         isType = !isArr && !isArg && !isBuff && isTypedArray(value),
@@ -10638,7 +10936,7 @@ function isNull(value) {
 }
 
 /** `Object#toString` result references. */
-var numberTag$1 = '[object Number]';
+var numberTag$1$1 = '[object Number]';
 
 /**
  * Checks if `value` is classified as a `Number` primitive or object.
@@ -10666,8 +10964,8 @@ var numberTag$1 = '[object Number]';
  * _.isNumber('3');
  * // => false
  */
-function isNumber(value) {
-    return typeof value == 'number' || isObjectLike(value) && baseGetTag$2(value) == numberTag$1;
+function isNumber$2(value) {
+    return typeof value == 'number' || isObjectLike$2(value) && baseGetTag$2(value) == numberTag$1$1;
 }
 
 /**
@@ -10702,7 +11000,7 @@ function isNaN$1(value) {
     // An `NaN` primitive is the only value that is not equal to itself.
     // Perform the `toStringTag` check first to avoid errors with some
     // ActiveX objects in IE.
-    return isNumber(value) && value != +value;
+    return isNumber$2(value) && value != +value;
 }
 
 var check = function check(d) {
@@ -11872,7 +12170,7 @@ function copySymbolsIn(source, object) {
  */
 function baseGetAllKeys(object, keysFunc, symbolsFunc) {
     var result = keysFunc(object);
-    return isArray(object) ? result : arrayPush(result, symbolsFunc(object));
+    return isArray$2(object) ? result : arrayPush(result, symbolsFunc(object));
 }
 
 /**
@@ -12308,7 +12606,7 @@ var numberTag$2 = '[object Number]';
 var objectTag$1 = '[object Object]';
 var regexpTag$1 = '[object RegExp]';
 var setTag$1 = '[object Set]';
-var stringTag$1 = '[object String]';
+var stringTag$1$1 = '[object String]';
 var symbolTag = '[object Symbol]';
 var weakMapTag$1 = '[object WeakMap]';
 
@@ -12326,7 +12624,7 @@ var uint32Tag$1 = '[object Uint32Array]';
 
 /** Used to identify `toStringTag` values supported by `_.clone`. */
 var cloneableTags = {};
-cloneableTags[argsTag$2] = cloneableTags[arrayTag$1] = cloneableTags[arrayBufferTag$1] = cloneableTags[dataViewTag$1] = cloneableTags[boolTag$1] = cloneableTags[dateTag$1] = cloneableTags[float32Tag$1] = cloneableTags[float64Tag$1] = cloneableTags[int8Tag$1] = cloneableTags[int16Tag$1] = cloneableTags[int32Tag$1] = cloneableTags[mapTag$1] = cloneableTags[numberTag$2] = cloneableTags[objectTag$1] = cloneableTags[regexpTag$1] = cloneableTags[setTag$1] = cloneableTags[stringTag$1] = cloneableTags[symbolTag] = cloneableTags[uint8Tag$1] = cloneableTags[uint8ClampedTag$1] = cloneableTags[uint16Tag$1] = cloneableTags[uint32Tag$1] = true;
+cloneableTags[argsTag$2] = cloneableTags[arrayTag$1] = cloneableTags[arrayBufferTag$1] = cloneableTags[dataViewTag$1] = cloneableTags[boolTag$1] = cloneableTags[dateTag$1] = cloneableTags[float32Tag$1] = cloneableTags[float64Tag$1] = cloneableTags[int8Tag$1] = cloneableTags[int16Tag$1] = cloneableTags[int32Tag$1] = cloneableTags[mapTag$1] = cloneableTags[numberTag$2] = cloneableTags[objectTag$1] = cloneableTags[regexpTag$1] = cloneableTags[setTag$1] = cloneableTags[stringTag$1$1] = cloneableTags[symbolTag] = cloneableTags[uint8Tag$1] = cloneableTags[uint8ClampedTag$1] = cloneableTags[uint16Tag$1] = cloneableTags[uint32Tag$1] = true;
 cloneableTags[errorTag$1] = cloneableTags[funcTag$2] = cloneableTags[weakMapTag$1] = false;
 
 /**
@@ -12360,7 +12658,7 @@ function baseClone(value, bitmask, customizer, key, object, stack) {
     if (!isObject$2(value)) {
         return value;
     }
-    var isArr = isArray(value);
+    var isArr = isArray$2(value);
     if (isArr) {
         result = initCloneArray(value);
         if (!isDeep) {
@@ -12575,7 +12873,7 @@ var baseFor = createBaseFor();
  * // => false
  */
 function isArrayLikeObject(value) {
-    return isObjectLike(value) && isArrayLike(value);
+    return isObjectLike$2(value) && isArrayLike(value);
 }
 
 /** `Object#toString` result references. */
@@ -12623,7 +12921,7 @@ var objectCtorString = funcToString$2.call(Object);
  * // => true
  */
 function isPlainObject(value) {
-    if (!isObjectLike(value) || baseGetTag$2(value) != objectTag$3) {
+    if (!isObjectLike$2(value) || baseGetTag$2(value) != objectTag$3) {
         return false;
     }
     var proto = getPrototype(value);
@@ -12691,13 +12989,13 @@ function baseMergeDeep(object, source, key, srcIndex, mergeFunc, customizer, sta
     var isCommon = newValue === undefined;
 
     if (isCommon) {
-        var isArr = isArray(srcValue),
+        var isArr = isArray$2(srcValue),
             isBuff = !isArr && isBuffer(srcValue),
             isTyped = !isArr && !isBuff && isTypedArray(srcValue);
 
         newValue = srcValue;
         if (isArr || isBuff || isTyped) {
-            if (isArray(objValue)) {
+            if (isArray$2(objValue)) {
                 newValue = objValue;
             } else if (isArrayLikeObject(objValue)) {
                 newValue = copyArray(objValue);
@@ -12776,7 +13074,7 @@ function baseMerge(object, source, srcIndex, customizer, stack) {
  * console.log(_.identity(object) === object);
  * // => true
  */
-function identity$1(value) {
+function identity$3(value) {
     return value;
 }
 
@@ -12870,7 +13168,7 @@ function constant$2(value) {
  * @param {Function} string The `toString` result.
  * @returns {Function} Returns `func`.
  */
-var baseSetToString = !defineProperty$1 ? identity$1 : function (func, string) {
+var baseSetToString = !defineProperty$1 ? identity$3 : function (func, string) {
     return defineProperty$1(func, 'toString', {
         'configurable': true,
         'enumerable': false,
@@ -12934,7 +13232,7 @@ var setToString = shortOut(baseSetToString);
  * @returns {Function} Returns the new function.
  */
 function baseRest(func, start) {
-    return setToString(overRest(func, start, identity$1), func + '');
+    return setToString(overRest(func, start, identity$3), func + '');
 }
 
 /**
@@ -13060,7 +13358,7 @@ var merge = createAssigner(function (object, source, srcIndex) {
 });
 
 var MergeCustomizer = function MergeCustomizer(objValue, srcValue) {
-    if (isArray(objValue)) {
+    if (isArray$2(objValue)) {
 
         var hasObjDef = false;
         var _iteratorNormalCompletion = true;
@@ -13242,8 +13540,8 @@ var stringTag$3 = '[object String]';
  * _.isString(1);
  * // => false
  */
-function isString(value) {
-    return typeof value == 'string' || !isArray(value) && isObjectLike(value) && baseGetTag$2(value) == stringTag$3;
+function isString$2(value) {
+    return typeof value == 'string' || !isArray$2(value) && isObjectLike$2(value) && baseGetTag$2(value) == stringTag$3;
 }
 
 /** `Object#toString` result references. */
@@ -13267,7 +13565,7 @@ var symbolTag$2 = '[object Symbol]';
  * // => false
  */
 function isSymbol(value) {
-    return (typeof value === 'undefined' ? 'undefined' : _typeof$1(value)) == 'symbol' || isObjectLike(value) && baseGetTag$2(value) == symbolTag$2;
+    return (typeof value === 'undefined' ? 'undefined' : _typeof$1(value)) == 'symbol' || isObjectLike$2(value) && baseGetTag$2(value) == symbolTag$2;
 }
 
 /**
@@ -13328,7 +13626,7 @@ function baseGt(value, other) {
  * // => undefined
  */
 function max$1(array) {
-    return array && array.length ? baseExtremum(array, identity$1, baseGt) : undefined;
+    return array && array.length ? baseExtremum(array, identity$3, baseGt) : undefined;
 }
 
 /**
@@ -13363,7 +13661,7 @@ function baseLt(value, other) {
  * // => undefined
  */
 function min(array) {
-    return array && array.length ? baseExtremum(array, identity$1, baseLt) : undefined;
+    return array && array.length ? baseExtremum(array, identity$3, baseLt) : undefined;
 }
 
 /* taken from https://simplestatistics.org/ */
@@ -13439,7 +13737,7 @@ var SchemeRainbow = 'Rainbow';
 var SchemeCubehelix = 'Cubehelix';
 
 var interpolateSequentialScheme = function interpolateSequentialScheme(_scheme) {
-    if (!isFunction$2(_scheme) && !isString(_scheme)) {
+    if (!isFunction$2(_scheme) && !isString$2(_scheme)) {
         throw new Error(_scheme + 'is invalid');
     }
 
@@ -13540,7 +13838,7 @@ var interpolateSequentialScheme = function interpolateSequentialScheme(_scheme) 
 var linearStops = function linearStops(scheme) {
     var opacity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
 
-    if (isString(scheme) || isFunction$2(scheme)) {
+    if (isString$2(scheme) || isFunction$2(scheme)) {
         var interpolator = interpolateSequentialScheme(scheme);
 
         var offsets = range(0, 1, 0.1);
@@ -13567,7 +13865,7 @@ var linearStops = function linearStops(scheme) {
                 };
             });
         }
-    } else if (isArray(scheme)) {
+    } else if (isArray$2(scheme)) {
         var count = scheme.length;
 
         if (count > 1) {
@@ -13970,7 +14268,7 @@ var _smartSequential = function _smartSequential(_scheme, _data) {
 var gradientColor = function gradientColor(scheme, _data) {
     var _scheme = void 0;
 
-    if (!isString(scheme) && !isArray(scheme) && !isFunction$2(scheme)) {
+    if (!isString$2(scheme) && !isArray$2(scheme) && !isFunction$2(scheme)) {
         warn('color scheme is invalid: should be string, array or d3 interpolator');
         warn('MetroRain3 will be used by default');
         _scheme = MetroRain3;
@@ -13978,7 +14276,7 @@ var gradientColor = function gradientColor(scheme, _data) {
         _scheme = scheme;
     }
 
-    if (isString(_scheme)) {
+    if (isString$2(_scheme)) {
         var _interpolated = interpolateSequentialScheme(_scheme);
         if (_interpolated === null) {
             warn('color scheme is not found');
@@ -13991,7 +14289,7 @@ var gradientColor = function gradientColor(scheme, _data) {
         }
     } else if (isFunction$2(_scheme)) {
         return sequential(_scheme).domain(extent(_data));
-    } else if (isArray(_scheme)) {
+    } else if (isArray$2(_scheme)) {
         return _smartSequential(_scheme, _data);
     }
 };
@@ -14014,7 +14312,7 @@ var distinctColor = function distinctColor(scheme) {
 
     var _scheme = void 0;
 
-    if (!isString(scheme) && !isArray(scheme) && !isFunction$2(scheme)) {
+    if (!isString$2(scheme) && !isArray$2(scheme) && !isFunction$2(scheme)) {
         warn('color scheme is invalid: should be string, array or d3 interpolator');
         warn(' MetroRain3 will be used by default');
         _scheme = MetroRain3;
@@ -14024,7 +14322,7 @@ var distinctColor = function distinctColor(scheme) {
 
     var _scale = quantile$$1().domain(_distinction);
 
-    if (isString(_scheme)) {
+    if (isString$2(_scheme)) {
         var _interpolated = interpolateSequentialScheme(_scheme);
 
         if (_interpolated === null) {
@@ -14038,7 +14336,7 @@ var distinctColor = function distinctColor(scheme) {
         }
     } else if (isFunction$2(_scheme)) {
         _scale.range(_distinctStops(_scheme, _distinction));
-    } else if (isArray(_scheme)) {
+    } else if (isArray$2(_scheme)) {
         _scale.range(_scheme);
     }
 
@@ -14084,7 +14382,7 @@ var divergentColor = function divergentColor(scheme) {
     warn('divergent not implemented yet');
 
     var _scheme = void 0;
-    if (!isString(scheme) && !isArray(scheme) && !isFunction$2(scheme)) {
+    if (!isString$2(scheme) && !isArray$2(scheme) && !isFunction$2(scheme)) {
         warn('color scheme is invalid: should be string, array or d3 interpolator');
         warn('SchemeRdYlGn will be used by default');
         _scheme = SchemeRdYlGn;
@@ -14092,7 +14390,7 @@ var divergentColor = function divergentColor(scheme) {
         _scheme = scheme;
     }
 
-    if (isString(_scheme)) {
+    if (isString$2(_scheme)) {
         var _interpolated = interpolateDivergentScheme(_scheme);
 
         if (_interpolated === null) {
@@ -14173,7 +14471,7 @@ var categoricalColor = function categoricalColor(scheme) {
     var _num = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
     var _scheme = scheme;
-    if (!isString(scheme) && !isArray(scheme) && !isFunction$2(scheme)) {
+    if (!isString$2(scheme) && !isArray$2(scheme) && !isFunction$2(scheme)) {
         warn('color scheme is invalid: should be string, array or d3 interpolator');
         warn('MetroRain8 will be used by default');
         _scheme = MetroRain8;
@@ -14183,11 +14481,11 @@ var categoricalColor = function categoricalColor(scheme) {
     // warn('categorical number is invalid: should be larger than 0');
     // warn('12 will be used by default');
 
-    if (isString(_scheme)) {
+    if (isString$2(_scheme)) {
         var colorSet = interpolateCategoricalScheme(_scheme) || interpolateSequentialScheme(_scheme) || interpolateDivergentScheme(_scheme);
 
         if (colorSet != null) {
-            if (isArray(colorSet)) {
+            if (isArray$2(colorSet)) {
                 return ordinal().range(colorSet);
             } else {
                 return ordinal().range(_selectFromScheme(colorSet, selectNum));
@@ -14570,8 +14868,8 @@ var hasOwnProperty$11 = objectProto$14.hasOwnProperty;
  * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
  */
 function baseIsEqualDeep(object, other, bitmask, customizer, equalFunc, stack) {
-    var objIsArr = isArray(object),
-        othIsArr = isArray(other),
+    var objIsArr = isArray$2(object),
+        othIsArr = isArray$2(other),
         objTag = objIsArr ? arrayTag$2 : getTag$1(object),
         othTag = othIsArr ? arrayTag$2 : getTag$1(other);
 
@@ -14630,7 +14928,7 @@ function baseIsEqual(value, other, bitmask, customizer, stack) {
     if (value === other) {
         return true;
     }
-    if (value == null || other == null || !isObjectLike(value) && !isObjectLike(other)) {
+    if (value == null || other == null || !isObjectLike$2(value) && !isObjectLike$2(other)) {
         return value !== value && other !== other;
     }
     return baseIsEqualDeep(value, other, bitmask, customizer, baseIsEqual, stack);
@@ -14768,7 +15066,7 @@ var reIsPlainProp = /^\w*$/;
  * @returns {boolean} Returns `true` if `value` is a property name, else `false`.
  */
 function isKey(value, object) {
-    if (isArray(value)) {
+    if (isArray$2(value)) {
         return false;
     }
     var type = typeof value === 'undefined' ? 'undefined' : _typeof$1(value);
@@ -14916,7 +15214,7 @@ function baseToString(value) {
     if (typeof value == 'string') {
         return value;
     }
-    if (isArray(value)) {
+    if (isArray$2(value)) {
         // Recursively convert values (susceptible to call stack limits).
         return arrayMap(value, baseToString) + '';
     }
@@ -14961,7 +15259,7 @@ function toString(value) {
  * @returns {Array} Returns the cast property path array.
  */
 function castPath(value, object) {
-    if (isArray(value)) {
+    if (isArray$2(value)) {
         return value;
     }
     return isKey(value, object) ? [value] : stringToPath(toString(value));
@@ -15074,7 +15372,7 @@ function hasPath(object, path, hasFunc) {
         return result;
     }
     length = object == null ? 0 : object.length;
-    return !!length && isLength(length) && isIndex(key, length) && (isArray(object) || isArguments(object));
+    return !!length && isLength(length) && isIndex(key, length) && (isArray$2(object) || isArguments(object));
 }
 
 /**
@@ -15195,10 +15493,10 @@ function baseIteratee(value) {
         return value;
     }
     if (value == null) {
-        return identity$1;
+        return identity$3;
     }
     if ((typeof value === 'undefined' ? 'undefined' : _typeof$1(value)) == 'object') {
-        return isArray(value) ? baseMatchesProperty(value[0], value[1]) : baseMatches(value);
+        return isArray$2(value) ? baseMatchesProperty(value[0], value[1]) : baseMatches(value);
     }
     return property(value);
 }
@@ -15315,7 +15613,7 @@ function baseMap(collection, iteratee) {
  * // => ['barney', 'fred']
  */
 function map(collection, iteratee) {
-    var func = isArray(collection) ? arrayMap : baseMap;
+    var func = isArray$2(collection) ? arrayMap : baseMap;
     return func(collection, baseIteratee(iteratee, 3));
 }
 
@@ -15795,6 +16093,209 @@ var getTransparentColor = function getTransparentColor(c, alpha) {
     hslColorSpace.opacity = alpha;
 
     return hslColorSpace;
+};
+
+var isTickDiv = function isTickDiv(data, units) {
+  return (data.length - 1) % units === 0;
+};
+
+var updateXAxisTicks = function updateXAxisTicks(data, opt, xAxis) {
+    var getDimensionVal = function getDimensionVal(d) {
+        return d[opt.data.x.accessor];
+    };
+
+    var maxTicks = opt.xAxis.ticks > 0 ? opt.xAxis.ticks : 31;
+    if (data.length <= maxTicks) {
+        xAxis.ticks(data.length);
+        return;
+    }
+
+    var units = 10;
+    if (maxTicks <= 10) {
+        units = maxTicks;
+        while (units > 1) {
+            //minimum 1
+            if (isTickDiv(data, units)) {
+                break;
+            }
+            --units;
+        }
+    } else {
+        if (isTickDiv(5)) {
+            units = isTickDiv(data, 10) ? 10 : 5;
+        } else if (isTickDiv(data, 7)) {
+            units = 7;
+        } else if (isTickDiv(data, 8)) {
+            units = 8;
+        } else if (isTickDiv(data, 9)) {
+            units = 9;
+        } else if (isTickDiv(data, 11)) {
+            units = 11;
+        } else if (maxTicks >= 12 && isTickDiv(data, 12)) {
+            units = 12;
+        } else if (maxTicks >= 13 && isTickDiv(data, 13)) {
+            units = 13;
+        } else if (isTickDiv(data, 6)) {
+            units = 6;
+        }
+        //use default here
+    }
+
+    if (units > 1) {
+        var current = 0;
+        var index = 0;
+        var lastIndex = data.length - 1;
+        var increment = Math.floor((data.length - 1) / units);
+        var arr = new Array(units + (isTickDiv(data, units) ? 1 : 2));
+
+        while (current < lastIndex) {
+            arr[index++] = getDimensionVal(data[current]);
+            current += increment;
+        }
+        arr[index] = getDimensionVal(data[lastIndex]);
+        xAxis.tickValues(arr);
+    } else {
+        xAxis.ticks(null);
+    }
+};
+
+var rotateXTicks = function rotateXTicks(_selector, angle) {
+    var transition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+    var _rotate = "rotate(-" + angle + ")";
+
+    var _tickText = _selector.selectAll('.x.axis .tick text');
+
+    if (transition === true) {
+        _tickText.transition().duration(300);
+    }
+
+    if (angle === 90) {
+        _tickText.attr("transform", _rotate).attr("dx", -10).attr("dy", -6).style("text-anchor", "end");
+    } else if (angle === 0) {
+        _tickText.attr("transform", _rotate).attr("dx", 0).attr("dy", 10).style("text-anchor", "middle");
+    } else if (angle === 60 || angle === 45) {
+        _tickText.attr("transform", _rotate).attr("dx", -10).attr("dy", 0).style("text-anchor", "end");
+    } else if (angle === 75) {
+        _tickText.attr("transform", _rotate).attr("dx", -10).attr("dy", -4).style("text-anchor", "end");
+    } else if (angle === 30) {
+        _tickText.attr("transform", _rotate).attr("dx", -5).attr("dy", 7).style("text-anchor", "end");
+    }
+};
+
+var transitionTicks = function transitionTicks(svg, data, opt, xAxis, yAxis) {
+    var transition = svg.transition().duration(opt.animation.duration.update);
+    var delay = function delay(d, i) {
+        return i / data.length * opt.animation.duration.update;
+    };
+
+    transition.select(".x.axis").delay(delay).call(xAxis);
+
+    transition.select(".y.axis").delay(delay).call(yAxis);
+
+    svg.select('.x.axis').selectAll('.tick').attr('opacity', opt.xAxis.showTicks === true ? 1 : 0);
+    svg.select('.y.axis').selectAll('.tick').attr('opacity', opt.yAxis[0].showTicks === true ? 1 : 0);
+    rotateXTicks(svg, opt.xAxis.labelAngle, false);
+};
+
+var cnTimeFormat = function cnTimeFormat(date) {
+    var CN = formatLocale$1({
+        "dateTime": "%a %b %e %X %Y",
+        "date": "%m/%d/%Y",
+        "time": "%H:%M:%S",
+        "periods": ["AM", "PM"],
+        "days": ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+        "shortDays": ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+        "months": ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+        "shortMonths": ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
+    });
+
+    var formatMillisecond = CN.format(".%L"),
+        formatSecond = CN.format(":%S"),
+        formatMinute = CN.format("%I:%M"),
+        formatHour = CN.format("%I %p"),
+        formatDay = CN.format("%a %d"),
+        formatWeek = CN.format("%b %d"),
+        formatMonth = CN.format("%B"),
+        formatYear = CN.format("%Y");
+
+    return (second(date) < date ? formatMillisecond : minute(date) < date ? formatSecond : hour(date) < date ? formatMinute : day(date) < date ? formatHour : month(date) < date ? sunday(date) < date ? formatDay : formatWeek : year(date) < date ? formatMonth : formatYear)(date);
+};
+
+var isBar = function isBar(options) {
+    return options.chart.type === 'bar' || options.chart.type === 'bar_horizontal' || options.chart.type === 'bar_grouped' || options.chart.type === 'bar_stacked' || options.chart.type === 'bar_expanded';
+};
+
+var updateAxis = function updateAxis(svg, data, opt) {
+    var dimension = opt.data.x;
+    var metric = opt.data.y[0];
+    var xScale = dimension.scale;
+    var yScale = metric.scale;
+    var xAxis = axisBottom();
+    var yAxis = axisLeft();
+
+    //scale ticks, bar is special because every column is distinct
+    if (isBar(opt) === true) {
+        updateXAxisTicks(data, opt, xAxis);
+    } else {
+        if (dimension.type === Globals.DataType.DATE) {
+            if (opt.xAxis.ticks > 0) {
+                //follow user specification
+                xAxis.ticks(Math.min(data.length, opt.xAxis.ticks));
+            } else if (data.length > 31) {
+                xAxis.ticks(10);
+            } else {
+                xAxis.ticks(data.length);
+            }
+        } else if (dimension.type === Globals.DataType.NUMBER) {
+            if (opt.ordering.accessor !== opt.data.y[0].accessor) {
+                if (opt.xAxis.ticks > 0) {
+                    //follow user specification
+                    xAxis.ticks(Math.min(data.length, opt.xAxis.ticks));
+                } else {
+                    xAxis.ticks(null);
+                }
+            } else {
+                updateXAxisTicks(data, opt, xAxis);
+            }
+        } else if (dimension.type === Globals.DataType.STRING) {
+            updateXAxisTicks(data, opt, xAxis);
+        }
+    }
+
+    yScale.nice();
+
+    //tick formats
+    if (isString(opt.yAxis[0].tickFormat)) {
+        yAxis.tickFormat(format(opt.yAxis[0].tickFormat));
+    } else {
+        yAxis.tickFormat(null);
+    }
+
+    if (isString(opt.xAxis.tickFormat) && opt.xAxis.tickFormat.length > 0) {
+        xAxis.tickFormat(format(opt.xAxis.tickFormat));
+    } else if (dimension.type === Globals.DataType.DATE) {
+        if (opt.locale === 'zh') {
+            xAxis.tickFormat(cnTimeFormat);
+        } else {
+            xAxis.tickFormat(null);
+        }
+    } else {
+        xAxis.tickFormat(null);
+    }
+
+    xAxis.scale(xScale);
+    yAxis.scale(yScale);
+    if (isNumber(opt.yAxis[0].ticks) && isFinite$1(opt.yAxis[0].ticks) && opt.yAxis[0].ticks > 0) {
+        yAxis.ticks(metric.ticksTier);
+    }
+
+    transitionTicks(svg, data, opt, xAxis, yAxis);
+
+    return {
+        x: xAxis,
+        y: yAxis
+    };
 };
 
 var tooltipMarkup = function tooltipMarkup(d, chartContext) {
@@ -16474,34 +16975,6 @@ function baseTimes$1(n, iteratee) {
   return result;
 }
 
-/**
- * Checks if `value` is object-like. A value is object-like if it's not `null`
- * and has a `typeof` result of "object".
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
- * @example
- *
- * _.isObjectLike({});
- * // => true
- *
- * _.isObjectLike([1, 2, 3]);
- * // => true
- *
- * _.isObjectLike(_.noop);
- * // => false
- *
- * _.isObjectLike(null);
- * // => false
- */
-function isObjectLike$1(value) {
-  return value != null && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) == 'object';
-}
-
 var argsTag$2$1 = '[object Arguments]';
 
 /**
@@ -16512,7 +16985,7 @@ var argsTag$2$1 = '[object Arguments]';
  * @returns {boolean} Returns `true` if `value` is an `arguments` object,
  */
 function baseIsArguments$1(value) {
-  return isObjectLike$1(value) && baseGetTag(value) == argsTag$2$1;
+  return isObjectLike(value) && baseGetTag(value) == argsTag$2$1;
 }
 
 var objectProto$8$1 = Object.prototype;
@@ -16544,33 +17017,8 @@ var propertyIsEnumerable$1$1 = objectProto$8$1.propertyIsEnumerable;
 var isArguments$1 = baseIsArguments$1(function () {
   return arguments;
 }()) ? baseIsArguments$1 : function (value) {
-  return isObjectLike$1(value) && hasOwnProperty$7$1.call(value, 'callee') && !propertyIsEnumerable$1$1.call(value, 'callee');
+  return isObjectLike(value) && hasOwnProperty$7$1.call(value, 'callee') && !propertyIsEnumerable$1$1.call(value, 'callee');
 };
-
-/**
- * Checks if `value` is classified as an `Array` object.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an array, else `false`.
- * @example
- *
- * _.isArray([1, 2, 3]);
- * // => true
- *
- * _.isArray(document.body.children);
- * // => false
- *
- * _.isArray('abc');
- * // => false
- *
- * _.isArray(_.noop);
- * // => false
- */
-var isArray$1 = Array.isArray;
 
 /**
  * This method returns `false`.
@@ -16681,11 +17129,11 @@ var dateTag$2$1 = '[object Date]';
 var errorTag$2$1 = '[object Error]';
 var funcTag$3 = '[object Function]';
 var mapTag$2$1 = '[object Map]';
-var numberTag$2$1 = '[object Number]';
+var numberTag$3$1 = '[object Number]';
 var objectTag$2$1 = '[object Object]';
 var regexpTag$2$1 = '[object RegExp]';
 var setTag$2$1 = '[object Set]';
-var stringTag$2$1 = '[object String]';
+var stringTag$3$1 = '[object String]';
 var weakMapTag$2$1 = '[object WeakMap]';
 
 var arrayBufferTag$2$1 = '[object ArrayBuffer]';
@@ -16703,7 +17151,7 @@ var uint32Tag$2$1 = '[object Uint32Array]';
 /** Used to identify `toStringTag` values of typed arrays. */
 var typedArrayTags$1 = {};
 typedArrayTags$1[float32Tag$2$1] = typedArrayTags$1[float64Tag$2$1] = typedArrayTags$1[int8Tag$2$1] = typedArrayTags$1[int16Tag$2$1] = typedArrayTags$1[int32Tag$2$1] = typedArrayTags$1[uint8Tag$2$1] = typedArrayTags$1[uint8ClampedTag$2$1] = typedArrayTags$1[uint16Tag$2$1] = typedArrayTags$1[uint32Tag$2$1] = true;
-typedArrayTags$1[argsTag$3$1] = typedArrayTags$1[arrayTag$2$1] = typedArrayTags$1[arrayBufferTag$2$1] = typedArrayTags$1[boolTag$2$1] = typedArrayTags$1[dataViewTag$2$1] = typedArrayTags$1[dateTag$2$1] = typedArrayTags$1[errorTag$2$1] = typedArrayTags$1[funcTag$3] = typedArrayTags$1[mapTag$2$1] = typedArrayTags$1[numberTag$2$1] = typedArrayTags$1[objectTag$2$1] = typedArrayTags$1[regexpTag$2$1] = typedArrayTags$1[setTag$2$1] = typedArrayTags$1[stringTag$2$1] = typedArrayTags$1[weakMapTag$2$1] = false;
+typedArrayTags$1[argsTag$3$1] = typedArrayTags$1[arrayTag$2$1] = typedArrayTags$1[arrayBufferTag$2$1] = typedArrayTags$1[boolTag$2$1] = typedArrayTags$1[dataViewTag$2$1] = typedArrayTags$1[dateTag$2$1] = typedArrayTags$1[errorTag$2$1] = typedArrayTags$1[funcTag$3] = typedArrayTags$1[mapTag$2$1] = typedArrayTags$1[numberTag$3$1] = typedArrayTags$1[objectTag$2$1] = typedArrayTags$1[regexpTag$2$1] = typedArrayTags$1[setTag$2$1] = typedArrayTags$1[stringTag$3$1] = typedArrayTags$1[weakMapTag$2$1] = false;
 
 /**
  * The base implementation of `_.isTypedArray` without Node.js optimizations.
@@ -16713,7 +17161,7 @@ typedArrayTags$1[argsTag$3$1] = typedArrayTags$1[arrayTag$2$1] = typedArrayTags$
  * @returns {boolean} Returns `true` if `value` is a typed array, else `false`.
  */
 function baseIsTypedArray$1(value) {
-    return isObjectLike$1(value) && isLength$1(value.length) && !!typedArrayTags$1[baseGetTag(value)];
+    return isObjectLike(value) && isLength$1(value.length) && !!typedArrayTags$1[baseGetTag(value)];
 }
 
 /**
@@ -16782,7 +17230,7 @@ var hasOwnProperty$6$1 = objectProto$7$1.hasOwnProperty;
  * @returns {Array} Returns the array of property names.
  */
 function arrayLikeKeys$1(value, inherited) {
-  var isArr = isArray$1(value),
+  var isArr = isArray(value),
       isArg = !isArr && isArguments$1(value),
       isBuff = !isArr && !isArg && isBuffer$1(value),
       isType = !isArr && !isArg && !isBuff && isTypedArray$1(value),
@@ -17100,7 +17548,7 @@ function copySymbolsIn$1(source, object) {
 
 function baseGetAllKeys$1(object, keysFunc, symbolsFunc) {
   var result = keysFunc(object);
-  return isArray$1(object) ? result : arrayPush$1(result, symbolsFunc(object));
+  return isArray(object) ? result : arrayPush$1(result, symbolsFunc(object));
 }
 
 function getAllKeys$1(object) {
@@ -17365,10 +17813,10 @@ function cloneTypedArray$1(typedArray, isDeep) {
 var boolTag$3$1 = '[object Boolean]';
 var dateTag$3$1 = '[object Date]';
 var mapTag$4$1 = '[object Map]';
-var numberTag$3$1 = '[object Number]';
+var numberTag$4$1 = '[object Number]';
 var regexpTag$3$1 = '[object RegExp]';
 var setTag$4$1 = '[object Set]';
-var stringTag$3$1 = '[object String]';
+var stringTag$4$1 = '[object String]';
 var symbolTag$2$1 = '[object Symbol]';
 
 var arrayBufferTag$3$1 = '[object ArrayBuffer]';
@@ -17417,8 +17865,8 @@ function initCloneByTag$1(object, tag, cloneFunc, isDeep) {
     case mapTag$4$1:
       return cloneMap$1(object, isDeep, cloneFunc);
 
-    case numberTag$3$1:
-    case stringTag$3$1:
+    case numberTag$4$1:
+    case stringTag$4$1:
       return new Ctor(object);
 
     case regexpTag$3$1:
@@ -17475,11 +17923,11 @@ var errorTag$1$1 = '[object Error]';
 var funcTag$2$1 = '[object Function]';
 var genTag$2 = '[object GeneratorFunction]';
 var mapTag$1$1 = '[object Map]';
-var numberTag$1$1 = '[object Number]';
+var numberTag$2$1 = '[object Number]';
 var objectTag$1$1 = '[object Object]';
 var regexpTag$1$1 = '[object RegExp]';
 var setTag$1$1 = '[object Set]';
-var stringTag$1$1 = '[object String]';
+var stringTag$2$1 = '[object String]';
 var symbolTag$1$1 = '[object Symbol]';
 var weakMapTag$1$1 = '[object WeakMap]';
 
@@ -17497,7 +17945,7 @@ var uint32Tag$1$1 = '[object Uint32Array]';
 
 /** Used to identify `toStringTag` values supported by `_.clone`. */
 var cloneableTags$1 = {};
-cloneableTags$1[argsTag$1$1] = cloneableTags$1[arrayTag$1$1] = cloneableTags$1[arrayBufferTag$1$1] = cloneableTags$1[dataViewTag$1$1] = cloneableTags$1[boolTag$1$1] = cloneableTags$1[dateTag$1$1] = cloneableTags$1[float32Tag$1$1] = cloneableTags$1[float64Tag$1$1] = cloneableTags$1[int8Tag$1$1] = cloneableTags$1[int16Tag$1$1] = cloneableTags$1[int32Tag$1$1] = cloneableTags$1[mapTag$1$1] = cloneableTags$1[numberTag$1$1] = cloneableTags$1[objectTag$1$1] = cloneableTags$1[regexpTag$1$1] = cloneableTags$1[setTag$1$1] = cloneableTags$1[stringTag$1$1] = cloneableTags$1[symbolTag$1$1] = cloneableTags$1[uint8Tag$1$1] = cloneableTags$1[uint8ClampedTag$1$1] = cloneableTags$1[uint16Tag$1$1] = cloneableTags$1[uint32Tag$1$1] = true;
+cloneableTags$1[argsTag$1$1] = cloneableTags$1[arrayTag$1$1] = cloneableTags$1[arrayBufferTag$1$1] = cloneableTags$1[dataViewTag$1$1] = cloneableTags$1[boolTag$1$1] = cloneableTags$1[dateTag$1$1] = cloneableTags$1[float32Tag$1$1] = cloneableTags$1[float64Tag$1$1] = cloneableTags$1[int8Tag$1$1] = cloneableTags$1[int16Tag$1$1] = cloneableTags$1[int32Tag$1$1] = cloneableTags$1[mapTag$1$1] = cloneableTags$1[numberTag$2$1] = cloneableTags$1[objectTag$1$1] = cloneableTags$1[regexpTag$1$1] = cloneableTags$1[setTag$1$1] = cloneableTags$1[stringTag$2$1] = cloneableTags$1[symbolTag$1$1] = cloneableTags$1[uint8Tag$1$1] = cloneableTags$1[uint8ClampedTag$1$1] = cloneableTags$1[uint16Tag$1$1] = cloneableTags$1[uint32Tag$1$1] = true;
 cloneableTags$1[errorTag$1$1] = cloneableTags$1[funcTag$2$1] = cloneableTags$1[weakMapTag$1$1] = false;
 
 /**
@@ -17531,7 +17979,7 @@ function baseClone$1(value, bitmask, customizer, key, object, stack) {
   if (!isObject(value)) {
     return value;
   }
-  var isArr = isArray$1(value);
+  var isArr = isArray(value);
   if (isArr) {
     result = initCloneArray$1(value);
     if (!isDeep) {
@@ -17641,7 +18089,7 @@ var symbolTag$3$1 = '[object Symbol]';
  * // => false
  */
 function isSymbol$1(value) {
-  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) == 'symbol' || isObjectLike$1(value) && baseGetTag(value) == symbolTag$3$1;
+  return (typeof value === 'undefined' ? 'undefined' : _typeof(value)) == 'symbol' || isObjectLike(value) && baseGetTag(value) == symbolTag$3$1;
 }
 
 var reIsDeepProp$1 = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/;
@@ -17656,7 +18104,7 @@ var reIsPlainProp$1 = /^\w*$/;
  * @returns {boolean} Returns `true` if `value` is a property name, else `false`.
  */
 function isKey$1(value, object) {
-  if (isArray$1(value)) {
+  if (isArray(value)) {
     return false;
   }
   var type = typeof value === 'undefined' ? 'undefined' : _typeof(value);
@@ -17820,7 +18268,7 @@ function baseToString$1(value) {
   if (typeof value == 'string') {
     return value;
   }
-  if (isArray$1(value)) {
+  if (isArray(value)) {
     // Recursively convert values (susceptible to call stack limits).
     return arrayMap$1(value, baseToString$1) + '';
   }
@@ -17836,7 +18284,7 @@ function toString$1(value) {
 }
 
 function castPath$1(value, object) {
-  if (isArray$1(value)) {
+  if (isArray(value)) {
     return value;
   }
   return isKey$1(value, object) ? [value] : stringToPath$1(toString$1(value));
@@ -17877,7 +18325,7 @@ function hasPath$1(object, path, hasFunc) {
     return result;
   }
   length = object == null ? 0 : object.length;
-  return !!length && isLength$1(length) && isIndex$1(key, length) && (isArray$1(object) || isArguments$1(object));
+  return !!length && isLength$1(length) && isIndex$1(key, length) && (isArray(object) || isArguments$1(object));
 }
 
 function has(object, path) {
@@ -18042,10 +18490,10 @@ var boolTag$4 = '[object Boolean]';
 var dateTag$4 = '[object Date]';
 var errorTag$3 = '[object Error]';
 var mapTag$5 = '[object Map]';
-var numberTag$4$1 = '[object Number]';
+var numberTag$5 = '[object Number]';
 var regexpTag$4 = '[object RegExp]';
 var setTag$5 = '[object Set]';
-var stringTag$4$1 = '[object String]';
+var stringTag$5 = '[object String]';
 var symbolTag$4 = '[object Symbol]';
 
 var arrayBufferTag$4 = '[object ArrayBuffer]';
@@ -18089,7 +18537,7 @@ function equalByTag$1(object, other, tag, bitmask, customizer, equalFunc, stack)
 
     case boolTag$4:
     case dateTag$4:
-    case numberTag$4$1:
+    case numberTag$5:
       // Coerce booleans to `1` or `0` and dates to milliseconds.
       // Invalid dates are coerced to `NaN`.
       return eq$1(+object, +other);
@@ -18098,7 +18546,7 @@ function equalByTag$1(object, other, tag, bitmask, customizer, equalFunc, stack)
       return object.name == other.name && object.message == other.message;
 
     case regexpTag$4:
-    case stringTag$4$1:
+    case stringTag$5:
       // Coerce regexes to strings and treat strings, primitives and objects,
       // as equal. See http://www.ecma-international.org/ecma-262/7.0/#sec-regexp.prototype.tostring
       // for more details.
@@ -18240,8 +18688,8 @@ var hasOwnProperty$12$1 = objectProto$15$1.hasOwnProperty;
  * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
  */
 function baseIsEqualDeep$1(object, other, bitmask, customizer, equalFunc, stack) {
-  var objIsArr = isArray$1(object),
-      othIsArr = isArray$1(other),
+  var objIsArr = isArray(object),
+      othIsArr = isArray(other),
       objTag = objIsArr ? arrayTag$3 : getTag$2(object),
       othTag = othIsArr ? arrayTag$3 : getTag$2(other);
 
@@ -18286,7 +18734,7 @@ function baseIsEqual$1(value, other, bitmask, customizer, stack) {
   if (value === other) {
     return true;
   }
-  if (value == null || other == null || !isObjectLike$1(value) && !isObjectLike$1(other)) {
+  if (value == null || other == null || !isObjectLike(value) && !isObjectLike(other)) {
     return value !== value && other !== other;
   }
   return baseIsEqualDeep$1(value, other, bitmask, customizer, baseIsEqual$1, stack);
@@ -18458,7 +18906,7 @@ function baseMatchesProperty$1(path, srcValue) {
  * console.log(_.identity(object) === object);
  * // => true
  */
-function identity$5(value) {
+function identity$6(value) {
   return value;
 }
 
@@ -18492,10 +18940,10 @@ function baseIteratee$1(value) {
     return value;
   }
   if (value == null) {
-    return identity$5;
+    return identity$6;
   }
   if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) == 'object') {
-    return isArray$1(value) ? baseMatchesProperty$1(value[0], value[1]) : baseMatches$1(value);
+    return isArray(value) ? baseMatchesProperty$1(value[0], value[1]) : baseMatches$1(value);
   }
   return property$1(value);
 }
@@ -18776,7 +19224,7 @@ var dateTag$5 = '[object Date]';
  * @returns {boolean} Returns `true` if `value` is a date object, else `false`.
  */
 function baseIsDate(value) {
-  return isObjectLike$1(value) && baseGetTag(value) == dateTag$5;
+  return isObjectLike(value) && baseGetTag(value) == dateTag$5;
 }
 
 var nodeIsDate = nodeUtil$1 && nodeUtil$1.isDate;
@@ -19084,7 +19532,7 @@ function baseMap$1(collection, iteratee) {
 }
 
 function map$5(collection, iteratee) {
-  var func = isArray$1(collection) ? arrayMap$1 : baseMap$1;
+  var func = isArray(collection) ? arrayMap$1 : baseMap$1;
   return func(collection, baseIteratee$1(iteratee, 3));
 }
 
@@ -19117,10 +19565,6 @@ var isYSort = function isYSort(opt) {
     }
 
     return false;
-};
-
-var isBar = function isBar(options) {
-    return options.chart.type === 'bar' || options.chart.type === 'bar_horizontal' || options.chart.type === 'bar_grouped' || options.chart.type === 'bar_stacked' || options.chart.type === 'bar_expanded';
 };
 
 var updateDimensionScale = function updateDimensionScale(data, opt) {
@@ -19181,43 +19625,11 @@ var updateDimensionScale = function updateDimensionScale(data, opt) {
     }
 };
 
-var numberTag$5 = '[object Number]';
-
-/**
- * Checks if `value` is classified as a `Number` primitive or object.
- *
- * **Note:** To exclude `Infinity`, `-Infinity`, and `NaN`, which are
- * classified as numbers, use the `_.isFinite` method.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a number, else `false`.
- * @example
- *
- * _.isNumber(3);
- * // => true
- *
- * _.isNumber(Number.MIN_VALUE);
- * // => true
- *
- * _.isNumber(Infinity);
- * // => true
- *
- * _.isNumber('3');
- * // => false
- */
-function isNumber$1(value) {
-  return typeof value == 'number' || isObjectLike$1(value) && baseGetTag(value) == numberTag$5;
-}
-
 function isNaN$1$1(value) {
   // An `NaN` primitive is the only value that is not equal to itself.
   // Perform the `toStringTag` check first to avoid errors with some
   // ActiveX objects in IE.
-  return isNumber$1(value) && value != +value;
+  return isNumber(value) && value != +value;
 }
 
 var _judgeMax = function _judgeMax(maxLength) {
@@ -19461,7 +19873,7 @@ var tickRange = function tickRange(range, ticks, tier) {
 };
 
 var isValid = function isValid(d) {
-    return !isUndefined(d) && !isNull$1(d) && isNumber$1(d);
+    return !isUndefined(d) && !isNull$1(d) && isNumber(d);
 };
 
 var updateMetricScale = function updateMetricScale(data, opt) {
@@ -19593,8 +20005,8 @@ var processCartesianData = function processCartesianData(data, opt) {
 
 var pi$1 = Math.PI;
 var tau$1 = 2 * pi$1;
-var epsilon$1 = 1e-6;
-var tauEpsilon = tau$1 - epsilon$1;
+var epsilon$2 = 1e-6;
+var tauEpsilon = tau$1 - epsilon$2;
 
 function Path() {
   this._x0 = this._y0 = // start of current subpath
@@ -19645,12 +20057,12 @@ Path.prototype = path.prototype = {
     }
 
     // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
-    else if (!(l01_2 > epsilon$1)) {}
+    else if (!(l01_2 > epsilon$2)) {}
 
       // Or, are (x0,y0), (x1,y1) and (x2,y2) collinear?
       // Equivalently, is (x1,y1) coincident with (x2,y2)?
       // Or, is the radius zero? Line to (x1,y1).
-      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon$1) || !r) {
+      else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon$2) || !r) {
           this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
         }
 
@@ -19667,7 +20079,7 @@ Path.prototype = path.prototype = {
                 t21 = l / l21;
 
             // If the start tangent is not coincident with (x0,y0), line to.
-            if (Math.abs(t01 - 1) > epsilon$1) {
+            if (Math.abs(t01 - 1) > epsilon$2) {
               this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
             }
 
@@ -19692,7 +20104,7 @@ Path.prototype = path.prototype = {
     }
 
     // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
-    else if (Math.abs(this._x1 - x0) > epsilon$1 || Math.abs(this._y1 - y0) > epsilon$1) {
+    else if (Math.abs(this._x1 - x0) > epsilon$2 || Math.abs(this._y1 - y0) > epsilon$2) {
         this._ += "L" + x0 + "," + y0;
       }
 
@@ -19708,7 +20120,7 @@ Path.prototype = path.prototype = {
     }
 
     // Is this arc non-empty? Draw an arc!
-    else if (da > epsilon$1) {
+    else if (da > epsilon$2) {
         this._ += "A" + r + "," + r + ",0," + +(da >= pi$1) + "," + cw + "," + (this._x1 = x + r * Math.cos(a1)) + "," + (this._y1 = y + r * Math.sin(a1));
       }
   },
@@ -19734,7 +20146,7 @@ var min$2 = Math.min;
 var sin = Math.sin;
 var sqrt$1 = Math.sqrt;
 
-var epsilon$2 = 1e-12;
+var epsilon$3 = 1e-12;
 var pi$2 = Math.PI;
 var halfPi$1 = pi$2 / 2;
 var tau$2 = 2 * pi$2;
@@ -19845,13 +20257,13 @@ var arc = function () {
     if (r1 < r0) r = r1, r1 = r0, r0 = r;
 
     // Is it a point?
-    if (!(r1 > epsilon$2)) context.moveTo(0, 0);
+    if (!(r1 > epsilon$3)) context.moveTo(0, 0);
 
     // Or is it a circle or annulus?
-    else if (da > tau$2 - epsilon$2) {
+    else if (da > tau$2 - epsilon$3) {
         context.moveTo(r1 * cos(a0), r1 * sin(a0));
         context.arc(0, 0, r1, a0, a1, !cw);
-        if (r0 > epsilon$2) {
+        if (r0 > epsilon$3) {
           context.moveTo(r0 * cos(a1), r0 * sin(a1));
           context.arc(0, 0, r0, a1, a0, cw);
         }
@@ -19866,7 +20278,7 @@ var arc = function () {
               da0 = da,
               da1 = da,
               ap = padAngle.apply(this, arguments) / 2,
-              rp = ap > epsilon$2 && (padRadius ? +padRadius.apply(this, arguments) : sqrt$1(r0 * r0 + r1 * r1)),
+              rp = ap > epsilon$3 && (padRadius ? +padRadius.apply(this, arguments) : sqrt$1(r0 * r0 + r1 * r1)),
               rc = min$2(abs(r1 - r0) / 2, +cornerRadius.apply(this, arguments)),
               rc0 = rc,
               rc1 = rc,
@@ -19874,11 +20286,11 @@ var arc = function () {
               t1;
 
           // Apply padding? Note that since r1 ≥ r0, da1 ≥ da0.
-          if (rp > epsilon$2) {
+          if (rp > epsilon$3) {
             var p0 = asin(rp / r0 * sin(ap)),
                 p1 = asin(rp / r1 * sin(ap));
-            if ((da0 -= p0 * 2) > epsilon$2) p0 *= cw ? 1 : -1, a00 += p0, a10 -= p0;else da0 = 0, a00 = a10 = (a0 + a1) / 2;
-            if ((da1 -= p1 * 2) > epsilon$2) p1 *= cw ? 1 : -1, a01 += p1, a11 -= p1;else da1 = 0, a01 = a11 = (a0 + a1) / 2;
+            if ((da0 -= p0 * 2) > epsilon$3) p0 *= cw ? 1 : -1, a00 += p0, a10 -= p0;else da0 = 0, a00 = a10 = (a0 + a1) / 2;
+            if ((da1 -= p1 * 2) > epsilon$3) p1 *= cw ? 1 : -1, a01 += p1, a11 -= p1;else da1 = 0, a01 = a11 = (a0 + a1) / 2;
           }
 
           var x01 = r1 * cos(a01),
@@ -19887,7 +20299,7 @@ var arc = function () {
               y10 = r0 * sin(a10);
 
           // Apply rounded corners?
-          if (rc > epsilon$2) {
+          if (rc > epsilon$3) {
             var x11 = r1 * cos(a11),
                 y11 = r1 * sin(a11),
                 x00 = r0 * cos(a00),
@@ -19895,7 +20307,7 @@ var arc = function () {
 
             // Restrict the corner radius according to the sector angle.
             if (da < pi$2) {
-              var oc = da0 > epsilon$2 ? intersect(x01, y01, x00, y00, x11, y11, x10, y10) : [x10, y10],
+              var oc = da0 > epsilon$3 ? intersect(x01, y01, x00, y00, x11, y11, x10, y10) : [x10, y10],
                   ax = x01 - oc[0],
                   ay = y01 - oc[1],
                   bx = x11 - oc[0],
@@ -19908,10 +20320,10 @@ var arc = function () {
           }
 
           // Is the sector collapsed to a line?
-          if (!(da1 > epsilon$2)) context.moveTo(x01, y01);
+          if (!(da1 > epsilon$3)) context.moveTo(x01, y01);
 
           // Does the sector’s outer ring have rounded corners?
-          else if (rc1 > epsilon$2) {
+          else if (rc1 > epsilon$3) {
               t0 = cornerTangents(x00, y00, x01, y01, r1, rc1, cw);
               t1 = cornerTangents(x11, y11, x10, y10, r1, rc1, cw);
 
@@ -19933,10 +20345,10 @@ var arc = function () {
 
           // Is there no inner ring, and it’s a circular sector?
           // Or perhaps it’s an annular sector collapsed due to padding?
-          if (!(r0 > epsilon$2) || !(da0 > epsilon$2)) context.lineTo(x10, y10);
+          if (!(r0 > epsilon$3) || !(da0 > epsilon$3)) context.lineTo(x10, y10);
 
           // Does the sector’s inner ring (or point) have rounded corners?
-          else if (rc0 > epsilon$2) {
+          else if (rc0 > epsilon$3) {
               t0 = cornerTangents(x10, y10, x11, y11, r0, -rc0, cw);
               t1 = cornerTangents(x01, y01, x00, y00, r0, -rc0, cw);
 
@@ -20203,12 +20615,12 @@ var descending$1 = function (a, b) {
   return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
 };
 
-var identity$7 = function (d) {
+var identity$8 = function (d) {
   return d;
 };
 
 var pie = function () {
-  var value = identity$7,
+  var value = identity$8,
       sortValues = descending$1,
       sort = null,
       startAngle = constant$6(0),
@@ -20371,7 +20783,7 @@ var radialArea = function () {
   return a;
 };
 
-var slice$2 = Array.prototype.slice;
+var slice$3 = Array.prototype.slice;
 
 var noop$3 = function () {};
 
@@ -20759,14 +21171,14 @@ function _point$2(that, x, y) {
       x2 = that._x2,
       y2 = that._y2;
 
-  if (that._l01_a > epsilon$2) {
+  if (that._l01_a > epsilon$3) {
     var a = 2 * that._l01_2a + 3 * that._l01_a * that._l12_a + that._l12_2a,
         n = 3 * that._l01_a * (that._l01_a + that._l12_a);
     x1 = (x1 * a - that._x0 * that._l12_2a + that._x2 * that._l01_2a) / n;
     y1 = (y1 * a - that._y0 * that._l12_2a + that._y2 * that._l01_2a) / n;
   }
 
-  if (that._l23_a > epsilon$2) {
+  if (that._l23_a > epsilon$3) {
     var b = 2 * that._l23_2a + 3 * that._l23_a * that._l12_a + that._l12_2a,
         m = 3 * that._l23_a * (that._l23_a + that._l12_a);
     x2 = (x2 * b + that._x1 * that._l23_2a - x * that._l12_2a) / m;
@@ -21299,7 +21711,7 @@ var stack = function () {
   }
 
   stack.keys = function (_) {
-    return arguments.length ? (keys = typeof _ === "function" ? _ : constant$6(slice$2.call(_)), stack) : keys;
+    return arguments.length ? (keys = typeof _ === "function" ? _ : constant$6(slice$3.call(_)), stack) : keys;
   };
 
   stack.value = function (_) {
@@ -21307,7 +21719,7 @@ var stack = function () {
   };
 
   stack.order = function (_) {
-    return arguments.length ? (order = _ == null ? none$2 : typeof _ === "function" ? _ : constant$6(slice$2.call(_)), stack) : order;
+    return arguments.length ? (order = _ == null ? none$2 : typeof _ === "function" ? _ : constant$6(slice$3.call(_)), stack) : order;
   };
 
   stack.offset = function (_) {
@@ -21503,7 +21915,7 @@ function baseAggregator(collection, setter, iteratee, accumulator) {
 
 function createAggregator(setter, initializer) {
   return function (collection, iteratee) {
-    var func = isArray$1(collection) ? arrayAggregator : baseAggregator,
+    var func = isArray(collection) ? arrayAggregator : baseAggregator,
         accumulator = initializer ? initializer() : {};
 
     return func(collection, setter, baseIteratee$1(iteratee, 2), accumulator);
@@ -21805,224 +22217,11 @@ var AbstractBasicCartesianChart = function (_AbstractCartesianCha) {
     return AbstractBasicCartesianChart;
 }(AbstractCartesianChart);
 
-var slice$3 = Array.prototype.slice;
-
-var identity$8 = function (x) {
-  return x;
-};
-
-var top = 1;
-var right = 2;
-var bottom = 3;
-var left = 4;
-var epsilon$3 = 1e-6;
-
-function translateX(x) {
-  return "translate(" + (x + 0.5) + ",0)";
-}
-
-function translateY(y) {
-  return "translate(0," + (y + 0.5) + ")";
-}
-
-function number$3(scale) {
-  return function (d) {
-    return +scale(d);
-  };
-}
-
-function center(scale) {
-  var offset = Math.max(0, scale.bandwidth() - 1) / 2; // Adjust for 0.5px offset.
-  if (scale.round()) offset = Math.round(offset);
-  return function (d) {
-    return +scale(d) + offset;
-  };
-}
-
-function entering() {
-  return !this.__axis;
-}
-
-function axis(orient, scale) {
-  var tickArguments = [],
-      tickValues = null,
-      tickFormat = null,
-      tickSizeInner = 6,
-      tickSizeOuter = 6,
-      tickPadding = 3,
-      k = orient === top || orient === left ? -1 : 1,
-      x = orient === left || orient === right ? "x" : "y",
-      transform = orient === top || orient === bottom ? translateX : translateY;
-
-  function axis(context) {
-    var values = tickValues == null ? scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain() : tickValues,
-        format = tickFormat == null ? scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : identity$8 : tickFormat,
-        spacing = Math.max(tickSizeInner, 0) + tickPadding,
-        range = scale.range(),
-        range0 = +range[0] + 0.5,
-        range1 = +range[range.length - 1] + 0.5,
-        position = (scale.bandwidth ? center : number$3)(scale.copy()),
-        selection = context.selection ? context.selection() : context,
-        path = selection.selectAll(".domain").data([null]),
-        tick = selection.selectAll(".tick").data(values, scale).order(),
-        tickExit = tick.exit(),
-        tickEnter = tick.enter().append("g").attr("class", "tick"),
-        line = tick.select("line"),
-        text = tick.select("text");
-
-    path = path.merge(path.enter().insert("path", ".tick").attr("class", "domain").attr("stroke", "#000"));
-
-    tick = tick.merge(tickEnter);
-
-    line = line.merge(tickEnter.append("line").attr("stroke", "#000").attr(x + "2", k * tickSizeInner));
-
-    text = text.merge(tickEnter.append("text").attr("fill", "#000").attr(x, k * spacing).attr("dy", orient === top ? "0em" : orient === bottom ? "0.71em" : "0.32em"));
-
-    if (context !== selection) {
-      path = path.transition(context);
-      tick = tick.transition(context);
-      line = line.transition(context);
-      text = text.transition(context);
-
-      tickExit = tickExit.transition(context).attr("opacity", epsilon$3).attr("transform", function (d) {
-        return isFinite(d = position(d)) ? transform(d) : this.getAttribute("transform");
-      });
-
-      tickEnter.attr("opacity", epsilon$3).attr("transform", function (d) {
-        var p = this.parentNode.__axis;return transform(p && isFinite(p = p(d)) ? p : position(d));
-      });
-    }
-
-    tickExit.remove();
-
-    path.attr("d", orient === left || orient == right ? "M" + k * tickSizeOuter + "," + range0 + "H0.5V" + range1 + "H" + k * tickSizeOuter : "M" + range0 + "," + k * tickSizeOuter + "V0.5H" + range1 + "V" + k * tickSizeOuter);
-
-    tick.attr("opacity", 1).attr("transform", function (d) {
-      return transform(position(d));
-    });
-
-    line.attr(x + "2", k * tickSizeInner);
-
-    text.attr(x, k * spacing).text(format);
-
-    selection.filter(entering).attr("fill", "none").attr("font-size", 10).attr("font-family", "sans-serif").attr("text-anchor", orient === right ? "start" : orient === left ? "end" : "middle");
-
-    selection.each(function () {
-      this.__axis = position;
-    });
-  }
-
-  axis.scale = function (_) {
-    return arguments.length ? (scale = _, axis) : scale;
-  };
-
-  axis.ticks = function () {
-    return tickArguments = slice$3.call(arguments), axis;
-  };
-
-  axis.tickArguments = function (_) {
-    return arguments.length ? (tickArguments = _ == null ? [] : slice$3.call(_), axis) : tickArguments.slice();
-  };
-
-  axis.tickValues = function (_) {
-    return arguments.length ? (tickValues = _ == null ? null : slice$3.call(_), axis) : tickValues && tickValues.slice();
-  };
-
-  axis.tickFormat = function (_) {
-    return arguments.length ? (tickFormat = _, axis) : tickFormat;
-  };
-
-  axis.tickSize = function (_) {
-    return arguments.length ? (tickSizeInner = tickSizeOuter = +_, axis) : tickSizeInner;
-  };
-
-  axis.tickSizeInner = function (_) {
-    return arguments.length ? (tickSizeInner = +_, axis) : tickSizeInner;
-  };
-
-  axis.tickSizeOuter = function (_) {
-    return arguments.length ? (tickSizeOuter = +_, axis) : tickSizeOuter;
-  };
-
-  axis.tickPadding = function (_) {
-    return arguments.length ? (tickPadding = +_, axis) : tickPadding;
-  };
-
-  return axis;
-}
-
-
-
-
-
-function axisBottom(scale) {
-  return axis(bottom, scale);
-}
-
-function axisLeft(scale) {
-  return axis(left, scale);
-}
-
-var stringTag$5 = '[object String]';
-
-/**
- * Checks if `value` is classified as a `String` primitive or object.
- *
- * @static
- * @since 0.1.0
- * @memberOf _
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a string, else `false`.
- * @example
- *
- * _.isString('abc');
- * // => true
- *
- * _.isString(1);
- * // => false
- */
-function isString$1(value) {
-  return typeof value == 'string' || !isArray$1(value) && isObjectLike$1(value) && baseGetTag(value) == stringTag$5;
-}
-
-var nativeIsFinite = root$2.isFinite;
-
-/**
- * Checks if `value` is a finite primitive number.
- *
- * **Note:** This method is based on
- * [`Number.isFinite`](https://mdn.io/Number/isFinite).
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a finite number, else `false`.
- * @example
- *
- * _.isFinite(3);
- * // => true
- *
- * _.isFinite(Number.MIN_VALUE);
- * // => true
- *
- * _.isFinite(Infinity);
- * // => false
- *
- * _.isFinite('3');
- * // => false
- */
-function isFinite$1(value) {
-  return typeof value == 'number' && nativeIsFinite(value);
-}
-
-var isTickDiv = function isTickDiv(data, units) {
+var isTickDiv$2 = function isTickDiv(data, units) {
   return (data.length - 1) % units === 0;
 };
 
-var updateXAxisTicks = function updateXAxisTicks(data, opt, xAxis) {
+var updateXAxisTicks$2 = function updateXAxisTicks(data, opt, xAxis) {
     var getDimensionVal = function getDimensionVal(d) {
         return d[opt.data.x.accessor];
     };
@@ -22038,27 +22237,27 @@ var updateXAxisTicks = function updateXAxisTicks(data, opt, xAxis) {
         units = maxTicks;
         while (units > 1) {
             //minimum 1
-            if (isTickDiv(data, units)) {
+            if (isTickDiv$2(data, units)) {
                 break;
             }
             --units;
         }
     } else {
-        if (isTickDiv(5)) {
-            units = isTickDiv(data, 10) ? 10 : 5;
-        } else if (isTickDiv(data, 7)) {
+        if (isTickDiv$2(5)) {
+            units = isTickDiv$2(data, 10) ? 10 : 5;
+        } else if (isTickDiv$2(data, 7)) {
             units = 7;
-        } else if (isTickDiv(data, 8)) {
+        } else if (isTickDiv$2(data, 8)) {
             units = 8;
-        } else if (isTickDiv(data, 9)) {
+        } else if (isTickDiv$2(data, 9)) {
             units = 9;
-        } else if (isTickDiv(data, 11)) {
+        } else if (isTickDiv$2(data, 11)) {
             units = 11;
-        } else if (maxTicks >= 12 && isTickDiv(data, 12)) {
+        } else if (maxTicks >= 12 && isTickDiv$2(data, 12)) {
             units = 12;
-        } else if (maxTicks >= 13 && isTickDiv(data, 13)) {
+        } else if (maxTicks >= 13 && isTickDiv$2(data, 13)) {
             units = 13;
-        } else if (isTickDiv(data, 6)) {
+        } else if (isTickDiv$2(data, 6)) {
             units = 6;
         }
         //use default here
@@ -22069,7 +22268,7 @@ var updateXAxisTicks = function updateXAxisTicks(data, opt, xAxis) {
         var index = 0;
         var lastIndex = data.length - 1;
         var increment = Math.floor((data.length - 1) / units);
-        var arr = new Array(units + (isTickDiv(data, units) ? 1 : 2));
+        var arr = new Array(units + (isTickDiv$2(data, units) ? 1 : 2));
 
         while (current < lastIndex) {
             arr[index++] = getDimensionVal(data[current]);
@@ -22082,7 +22281,7 @@ var updateXAxisTicks = function updateXAxisTicks(data, opt, xAxis) {
     }
 };
 
-var rotateXTicks = function rotateXTicks(_selector, angle) {
+var rotateXTicks$2 = function rotateXTicks(_selector, angle) {
     var transition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
     var _rotate = "rotate(-" + angle + ")";
@@ -22106,7 +22305,7 @@ var rotateXTicks = function rotateXTicks(_selector, angle) {
     }
 };
 
-var transitionTicks = function transitionTicks(svg, data, opt, xAxis, yAxis) {
+var transitionTicks$2 = function transitionTicks(svg, data, opt, xAxis, yAxis) {
     var transition = svg.transition().duration(opt.animation.duration.update);
     var delay = function delay(d, i) {
         return i / data.length * opt.animation.duration.update;
@@ -22118,10 +22317,10 @@ var transitionTicks = function transitionTicks(svg, data, opt, xAxis, yAxis) {
 
     svg.select('.x.axis').selectAll('.tick').attr('opacity', opt.xAxis.showTicks === true ? 1 : 0);
     svg.select('.y.axis').selectAll('.tick').attr('opacity', opt.yAxis[0].showTicks === true ? 1 : 0);
-    rotateXTicks(svg, opt.xAxis.labelAngle, false);
+    rotateXTicks$2(svg, opt.xAxis.labelAngle, false);
 };
 
-var cnTimeFormat = function cnTimeFormat(date) {
+var cnTimeFormat$2 = function cnTimeFormat(date) {
     var CN = formatLocale$1({
         "dateTime": "%a %b %e %X %Y",
         "date": "%m/%d/%Y",
@@ -22145,7 +22344,7 @@ var cnTimeFormat = function cnTimeFormat(date) {
     return (second(date) < date ? formatMillisecond : minute(date) < date ? formatSecond : hour(date) < date ? formatMinute : day(date) < date ? formatHour : month(date) < date ? sunday(date) < date ? formatDay : formatWeek : year(date) < date ? formatMonth : formatYear)(date);
 };
 
-var updateAxis = function updateAxis(svg, data, opt) {
+var updateAxis$2 = function updateAxis(svg, data, opt) {
     var dimension = opt.data.x;
     var metric = opt.data.y[0];
     var xScale = dimension.scale;
@@ -22155,7 +22354,7 @@ var updateAxis = function updateAxis(svg, data, opt) {
 
     //scale ticks, bar is special because every column is distinct
     if (isBar(opt) === true) {
-        updateXAxisTicks(data, opt, xAxis);
+        updateXAxisTicks$2(data, opt, xAxis);
     } else {
         if (dimension.type === Globals.DataType.DATE) {
             if (opt.xAxis.ticks > 0) {
@@ -22175,27 +22374,27 @@ var updateAxis = function updateAxis(svg, data, opt) {
                     xAxis.ticks(null);
                 }
             } else {
-                updateXAxisTicks(data, opt, xAxis);
+                updateXAxisTicks$2(data, opt, xAxis);
             }
         } else if (dimension.type === Globals.DataType.STRING) {
-            updateXAxisTicks(data, opt, xAxis);
+            updateXAxisTicks$2(data, opt, xAxis);
         }
     }
 
     yScale.nice();
 
     //tick formats
-    if (isString$1(opt.yAxis[0].tickFormat)) {
+    if (isString(opt.yAxis[0].tickFormat)) {
         yAxis.tickFormat(format(opt.yAxis[0].tickFormat));
     } else {
         yAxis.tickFormat(null);
     }
 
-    if (isString$1(opt.xAxis.tickFormat) && opt.xAxis.tickFormat.length > 0) {
+    if (isString(opt.xAxis.tickFormat) && opt.xAxis.tickFormat.length > 0) {
         xAxis.tickFormat(format(opt.xAxis.tickFormat));
     } else if (dimension.type === Globals.DataType.DATE) {
         if (opt.locale === 'zh') {
-            xAxis.tickFormat(cnTimeFormat);
+            xAxis.tickFormat(cnTimeFormat$2);
         } else {
             xAxis.tickFormat(null);
         }
@@ -22205,11 +22404,11 @@ var updateAxis = function updateAxis(svg, data, opt) {
 
     xAxis.scale(xScale);
     yAxis.scale(yScale);
-    if (isNumber$1(opt.yAxis[0].ticks) && isFinite$1(opt.yAxis[0].ticks) && opt.yAxis[0].ticks > 0) {
+    if (isNumber(opt.yAxis[0].ticks) && isFinite$1(opt.yAxis[0].ticks) && opt.yAxis[0].ticks > 0) {
         yAxis.ticks(metric.ticksTier);
     }
 
-    transitionTicks(svg, data, opt, xAxis, yAxis);
+    transitionTicks$2(svg, data, opt, xAxis, yAxis);
 
     return {
         x: xAxis,
@@ -22217,8 +22416,8 @@ var updateAxis = function updateAxis(svg, data, opt) {
     };
 };
 
-var renderAxis = function renderAxis(svg, data, opt) {
-    var _updateAxis = updateAxis(svg, data, opt),
+var renderAxis$2 = function renderAxis(svg, data, opt) {
+    var _updateAxis = updateAxis$2(svg, data, opt),
         _xAxis = _updateAxis.x,
         _yAxis = _updateAxis.y;
 
@@ -22237,7 +22436,7 @@ var renderAxis = function renderAxis(svg, data, opt) {
     xAxis.selectAll('.tick').attr('opacity', opt.xAxis.showTicks === true ? 1 : 0);
     yAxis.selectAll('.tick').attr('opacity', opt.yAxis[0].showTicks === true ? 1 : 0);
 
-    rotateXTicks(svg, opt.xAxis.labelAngle, false);
+    rotateXTicks$2(svg, opt.xAxis.labelAngle, false);
 };
 
 var AbstractBasicCartesianChartWithAxes = function (_AbstractBasicCartesi) {
@@ -22252,13 +22451,13 @@ var AbstractBasicCartesianChartWithAxes = function (_AbstractBasicCartesi) {
         key: 'render',
         value: function render(_data) {
             get$2(AbstractBasicCartesianChartWithAxes.prototype.__proto__ || Object.getPrototypeOf(AbstractBasicCartesianChartWithAxes.prototype), 'render', this).call(this, _data);
-            renderAxis(this._svg, this._data, this._options);
+            renderAxis$2(this._svg, this._data, this._options);
         }
     }, {
         key: 'update',
         value: function update() {
             get$2(AbstractBasicCartesianChartWithAxes.prototype.__proto__ || Object.getPrototypeOf(AbstractBasicCartesianChartWithAxes.prototype), 'update', this).call(this);
-            updateAxis(this._svg, this._data, this._options);
+            updateAxis$2(this._svg, this._data, this._options);
         }
     }]);
     return AbstractBasicCartesianChartWithAxes;
@@ -22647,7 +22846,7 @@ var Bar = function (_AbstractBasicCartesi) {
                 return i / _this4._data.length * _this4._options.animation.duration.update;
             }).attr("x", this._x).tween("append.rects", drawCanvasInTransition);
 
-            this.axes.update(this._svg, this._data);
+            updateAxis(this._svg, this._data, this._options);
         }
     }, {
         key: 'createOptions',
@@ -23025,7 +23224,7 @@ var Pie = function (_AbstractBasicCartesi) {
 
                     if (node) {
                         var html = void 0;
-                        if (isArray$1(node.data.data)) {
+                        if (isArray(node.data.data)) {
                             var n = {};
                             n[that._getDimension().accessor] = node.data.label;
                             n[that._getMetric().accessor] = sum(node.data.data.map(function (d) {
@@ -23773,7 +23972,7 @@ var AbstractStackedCartesianChartWithAxes = function (_AbstractStackedCarte) {
         key: 'render',
         value: function render(_data) {
             get$2(AbstractStackedCartesianChartWithAxes.prototype.__proto__ || Object.getPrototypeOf(AbstractStackedCartesianChartWithAxes.prototype), 'render', this).call(this, _data);
-            renderAxis(this._svg, this._data.nested[0].values.map(function (d) {
+            renderAxis$2(this._svg, this._data.nested[0].values.map(function (d) {
                 return d.data;
             }), this._options);
         }
@@ -23781,7 +23980,7 @@ var AbstractStackedCartesianChartWithAxes = function (_AbstractStackedCarte) {
         key: 'update',
         value: function update() {
             get$2(AbstractStackedCartesianChartWithAxes.prototype.__proto__ || Object.getPrototypeOf(AbstractStackedCartesianChartWithAxes.prototype), 'update', this).call(this);
-            updateAxis(this._svg, this._data.nested[0].values.map(function (d) {
+            updateAxis$2(this._svg, this._data.nested[0].values.map(function (d) {
                 return d.data;
             }), this._options);
         }
@@ -25192,7 +25391,7 @@ var CoronaOptions = {
 var getGridLevels = function getGridLevels(opt) {
     var levels = opt.data.y[0].ticksTier + 1;
 
-    if (isNumber$1(opt.plots.levels) && isFinite$1(opt.plots.levels) && parseInt(opt.plots.levels) > 0) {
+    if (isNumber(opt.plots.levels) && isFinite$1(opt.plots.levels) && parseInt(opt.plots.levels) > 0) {
         levels = parseInt(opt.plots.levels);
     }
 
@@ -26698,15 +26897,15 @@ var miniWidth = function miniWidth(opt) {
 var BottomAxisOffset = 10;
 var InitialBrushHeight = 200;
 
-var HorizontalBar = function (_AbstractBasicCartesi) {
-    inherits(HorizontalBar, _AbstractBasicCartesi);
+var Row = function (_AbstractBasicCartesi) {
+    inherits(Row, _AbstractBasicCartesi);
 
-    function HorizontalBar(canvasId, userOpt) {
-        classCallCheck(this, HorizontalBar);
-        return possibleConstructorReturn(this, (HorizontalBar.__proto__ || Object.getPrototypeOf(HorizontalBar)).call(this, canvasId, userOpt));
+    function Row(canvasId, userOpt) {
+        classCallCheck(this, Row);
+        return possibleConstructorReturn(this, (Row.__proto__ || Object.getPrototypeOf(Row)).call(this, canvasId, userOpt));
     }
 
-    createClass(HorizontalBar, [{
+    createClass(Row, [{
         key: '_animate',
         value: function _animate() {
             var _this2 = this;
@@ -26949,7 +27148,7 @@ var HorizontalBar = function (_AbstractBasicCartesi) {
             return createCartesianOpt(DefaultOpt$1, _userOptions);
         }
     }]);
-    return HorizontalBar;
+    return Row;
 }(AbstractBasicCartesianChart);
 
 exports.version = version;
@@ -26965,7 +27164,7 @@ exports.StackedBar = StackedBar;
 exports.Corona = Corona;
 exports.Radar = Radar;
 exports.Rose = Rose;
-exports.HorizontalBar = HorizontalBar;
+exports.Row = Row;
 exports.Stacks = Stacks;
 exports.processCartesianData = processCartesianData;
 exports.processStackedData = processStackedData;

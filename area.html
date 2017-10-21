@@ -131,6 +131,10 @@
 									<strong>Module:</strong>
 									vizart-basic
 								</p>
+								<p>
+									<strong>Data:</strong>
+									NASDAQ history 1985-2012, 6724 lines.
+								</p>
 							</div>
 						</div>
 						<!-- End Project Detail -->
@@ -143,27 +147,30 @@ import { Area } from 'vizart-basic';
 import 'vizart-basic/dist/vizart-basic.css';
 
 const options = {
-	chart: {
-		height: 420,
-		margin: { left: 30, right: 30, top: 10, bottom: 30 }
-	},
-
-	data: {
-		x: { accessor: 'age', type: 'number', name: 'Age' },
-		y: [ { accessor: 'income', type: 'number', name: 'Monthly Income' } ]
-	},
+		data: {
+				x:  { name: 'date', type: 'date', accessor: 'date', format: '%m/%d/%Y'},
+				y: [{ name: metricAccessor, type: 'number', accessor: metricAccessor}],
+		},
+		ordering: {
+				accessor: 'date',
+				direction: 'asc'
+		},
+		plots: {
+				areaOpacity: 0.5,
+				curve: 'basis',
+				strokeWidth: 2,
+				nodeRadius: 4,
+				drawArea: true,
+				showDots: false
+		}
 };
 
-const fakeData = [
-	{ age: 19, income: 9 }
-]
-
-const _chart = new Area('#chart', options);
-_chart.render(fakeData);
+const chart = new Area('#chart', options);
+d3.csv('assets/nasdaq1985-2012.csv', function(err, res){
+	area.render(res);
+});
 						</pre>
 					</div>
-
-
 				</div>
 			</div>
 		</div>
@@ -245,35 +252,35 @@ _chart.render(fakeData);
 		// change color
 		$('#red').click(function(){
 			opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
-			chart.transitionColor(opt.color);
+			area.transitionColor(opt.color);
 		});
 
 		$('#green').click(function(){
 			opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-			chart.transitionColor(opt.color)
+			area.transitionColor(opt.color)
 		});
 
 		$('#warm').click(function(){
 			opt.color.scheme = "Warm";
-			chart.transitionColor(opt.color)
+			area.transitionColor(opt.color)
 		});
 
 		$('#cool').click(function(){
 			opt.color.scheme = "Cool";
-			chart.transitionColor(opt.color);
+			area.transitionColor(opt.color);
 		});
 
 		$('#x-asc').click(function(){
-			chart.sort('mx', 'asc');
+			area.sort('date', 'asc');
 		})
 		$('#x-desc').click(function(){
-			chart.sort('mx', 'desc');
+			area.sort('date', 'desc');
 		});
 		$('#y-asc').click(function(){
-			chart.sort('my', 'asc');
+			area.sort(metricAccessor, 'asc');
 		});
 		$('#y-desc').click(function(){
-			chart.sort('my', 'desc');
+			area.sort(metricAccessor, 'desc');
 		});
 
 	});

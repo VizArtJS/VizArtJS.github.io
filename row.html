@@ -2,8 +2,8 @@
 <html>
 <head>
 	<title>Bar</title>
-	<meta name="description" content="VizArt Bar">
-	<meta name="keywords" content="VizArt Bar">
+	<meta name="description" content="VizArt Row">
+	<meta name="keywords" content="VizArt Row">
 	<meta charset="utf-8">
 	<meta name="author" content="Yun Xing">
 	<!--[if IE]>
@@ -79,14 +79,14 @@
 			<div class="row">
 
 				<div class="col-md-8">
-					<h1 class="hs-line-11 font-alt mb-20 mb-xs-0">Bar</h1>
+					<h1 class="hs-line-11 font-alt mb-20 mb-xs-0">Row</h1>
 					<div class="hs-line-4 font-alt">
 					</div>
 				</div>
 
 				<div class="col-md-4 mt-30">
 					<div class="mod-breadcrumbs font-alt align-right">
-						<a href="./index.html">Home</a>&nbsp;/&nbsp;<a href="./demo.html">Demo</a> / Bar
+						<a href="./index.html">Home</a>&nbsp;/&nbsp;<a href="./demo.html">Demo</a> / Row
 					</div>
 
 				</div>
@@ -100,14 +100,10 @@
 		<div class="container relative">
 
 			<div class="row" style="text-align: center; width: 100%;margin-top:10px">
-				<a id="x-asc" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">X Asc</a>
-				<a id="x-desc" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">X Desc</a>
-				<a id="y-asc" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Y Asc</a>
-				<a id="y-desc" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Y Desc</a>
-				<a id="red" href="#" class="btn btn-mod  btn-gray btn-round mb-10 mr-5">Red</a>
-				<a id="green" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Green</a>
-				<a id="warm" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Warm</a>
-				<a id="cool" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Cool</a>
+				<a id="red" href="#" class="btn btn-mod  btn-gray btn-round mb-10 mr-5">Red Yellow Blue</a>
+				<a id="green" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Red Yellow Green</a>
+				<a id="warm" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">BrBG</a>
+				<a id="cool" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">PiYG</a>
 			</div>
 			<div class="work-full-media mb-80 mb-xs-40">
 				<div id="chart" class="chart">
@@ -216,8 +212,14 @@ d3.csv('./data/movies.csv', function(err, res){
 			chart: {
 				margin: {
 					left: 50,
-					bottom: 100
+					right: 50,
+					bottom: 10
 				}
+			},
+
+			ordering: {
+				direction: 'desc',
+				accessor: 'Total'
 			},
 
 			yAxis: [
@@ -246,11 +248,18 @@ d3.csv('./data/movies.csv', function(err, res){
 					enabled: true,
 					color: 'black',
 					offset: 10
-				}
+				},
+
+				miniBarWidth: 50,
+			},
+
+			color: {
+				scheme: 'RdYlGn',
+				type: 'divergent'
 			}
 		};
 
-		const chart = new VizArtBasic.Bar('#chart', options);
+		const chart = new VizArtBasic.Row('#chart', options);
 
 		d3.csv('./data/movies.csv', function(err, res){
 			const data = _.uniqWith(res, function(a, b) {
@@ -258,8 +267,13 @@ d3.csv('./data/movies.csv', function(err, res){
 			});
 
 
-			for (let i = 0; i < data.length; i++) {
-				data[i].Total = +data[i].Total;
+			for (var i = 0; i < data.length; i++) {
+				if (i < 30) {
+					data[i].Total = 0 - +data[i].Total;
+				} else {
+					data[i].Total = +data[i].Total;
+
+				}
 			}
 
 			chart.render(data);
@@ -270,41 +284,24 @@ d3.csv('./data/movies.csv', function(err, res){
 
 		// change color
 		$('#red').click(function(){
-			opt.color.scheme = [
-				'#ffe100',
-				'#ffbf00',
-				'#ff5730'];
+			opt.color.scheme = 'RdYlBu';
 			chart.transitionColor(opt.color);
 		});
 
 		$('#green').click(function(){
-			opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
+			opt.color.scheme = 'RdYlGn';
 			chart.transitionColor(opt.color)
 		});
 
 		$('#warm').click(function(){
-			opt.color.scheme = "Warm";
+			opt.color.scheme = "BrBG";
 			chart.transitionColor(opt.color)
 		});
 
 		$('#cool').click(function(){
-			opt.color.scheme = "Cool";
+			opt.color.scheme = "PiYG";
 			chart.transitionColor(opt.color);
 		});
-
-		$('#x-asc').click(function(){
-			chart.sort('Director', 'asc');
-		})
-		$('#x-desc').click(function(){
-			chart.sort('Director', 'desc');
-		});
-		$('#y-asc').click(function(){
-			chart.sort('Total', 'asc');
-		});
-		$('#y-desc').click(function(){
-			chart.sort('Total', 'desc');
-		});
-
 	});
 </script>
 

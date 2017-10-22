@@ -155,7 +155,7 @@ const options = {
 	},
 };
 
-const chart = new Bar('#chart', options);
+const chart = new Row('#chart', options);
 d3.csv('./data/movies.csv', function(err, res){
    chart.render(res);
 });

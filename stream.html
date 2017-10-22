@@ -102,6 +102,7 @@
 			<div class="row" style="text-align: center; width: 100%;margin-top:10px">
 				<a id="wiggle" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Wiggle</a>
 				<a id="silhouette" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">silhouette: Zero</a>
+				<a id="divergent" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Divergent</a>
 				<a id="red" href="#" class="btn btn-mod  btn-gray btn-round mb-10 mr-5">Red</a>
 				<a id="green" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Green</a>
 				<a id="accent" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Accent</a>
@@ -272,9 +273,14 @@ _chart.render(_data);
 				_opt.plots.stackMethod = "wiggle";
 				chart.options(_opt);
 				chart.update();
-			})
+			});
+
+			$('#divergent').click(function () {
+				_opt.plots.stackMethod = "divergent";
+				chart.options(_opt);
+				chart.update();
+			});
 			$('#silhouette').click(function () {
-				_opt.plots.stackLayout = true;
 				_opt.plots.stackMethod = "silhouette";
 				chart.options(_opt);
 				chart.update();

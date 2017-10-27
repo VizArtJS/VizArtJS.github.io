@@ -5,7 +5,7 @@
 	(factory((global.VizArtBasic = {})));
 }(this, (function (exports) { 'use strict';
 
-var version = "1.1.2";
+var version = "1.1.6";
 
 var xhtml = "http://www.w3.org/1999/xhtml";
 
@@ -22088,6 +22088,7 @@ var generateStackLayout = function generateStackLayout(data, opt) {
                     y0: e[0],
                     y1: e[1],
                     y: metric ? metric.scale(e.data[metric.accessor]) : opt.data.y[0].scale(e.data[d.key]),
+                    _y: metric ? e.data[metric.accessor] : e.data[d.key],
                     data: e.data
                 };
             })
@@ -22470,9 +22471,9 @@ var CartesianOptions = {
     },
     chart: {
         margin: {
-            left: 60,
-            bottom: 50,
-            right: 10,
+            left: 20,
+            bottom: 20,
+            right: 20,
             top: 20
         }
     },
@@ -22727,9 +22728,6 @@ var Bar = function (_AbstractBasicCartesi) {
         _this._zero = function () {
             return _this._getMetric().scale(0);
         };
-
-        // We also make a map/dictionary to keep track of colors associated with node.
-        _this.colToNode;
         return _this;
     }
 
@@ -22873,7 +22871,7 @@ var drawHiddenCanvas = function drawHiddenCanvas(context, state, opt) {
     var slices = pieDiagram(state);
 
     context.save();
-    context.translate(opt.chart.width / 2, opt.chart.height / 2);
+    context.translate(opt.chart.innerWidth / 2, opt.chart.innerHeight / 2);
 
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
@@ -23088,7 +23086,7 @@ var drawCanvas = function drawCanvas(context, state, opt) {
     var slices = pieDiagram(state);
 
     context.save();
-    context.translate(opt.chart.width / 2, opt.chart.height / 2);
+    context.translate(opt.chart.innerWidth / 2, opt.chart.innerHeight / 2);
 
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
@@ -23128,20 +23126,28 @@ var drawCanvas = function drawCanvas(context, state, opt) {
 };
 
 var animateStates = function animateStates(initialState, finalState, duration, context, opt, dataRange) {
-    return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+    if (opt.animation.enabled === false) {
+        return new Promise(function (resolve, reject) {
+            drawCanvas(context, finalState, opt, dataRange);
 
-        var batchRendering = timer(function (elapsed) {
-            var t = Math.min(1, cubicInOut(elapsed / duration));
-
-            drawCanvas(context, interpolateParticles(t), opt, dataRange);
-
-            if (t === 1) {
-                batchRendering.stop();
-                resolve(interpolateParticles(t));
-            }
+            resolve(finalState);
         });
-    });
+    } else {
+        return new Promise(function (resolve, reject) {
+            var interpolateParticles = interpolateArray(initialState, finalState);
+
+            var batchRendering = timer(function (elapsed) {
+                var t = Math.min(1, cubicInOut(elapsed / duration));
+
+                drawCanvas(context, interpolateParticles(t), opt, dataRange);
+
+                if (t === 1) {
+                    batchRendering.stop();
+                    resolve(finalState);
+                }
+            });
+        });
+    }
 };
 
 var DefaultOptions = {
@@ -23153,7 +23159,7 @@ var DefaultOptions = {
         isDonut: false,
         opacity: 0.8,
         innerRadiusRatio: 0.4,
-        outerRadiusMargin: 70,
+        outerRadiusMargin: 30,
         labelOffset: 20,
         labelControlPointRadius: 6,
         labelPosition: 'auto',
@@ -23495,20 +23501,28 @@ var drawCanvas$2 = function drawCanvas(context, particles, opt) {
 };
 
 var animateStates$2 = function animateStates(initialState, finalState, duration, context, opt, dataRange) {
-    return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+    if (opt.animation.enabled === false) {
+        return new Promise(function (resolve, reject) {
+            drawCanvas$2(context, finalState, opt, dataRange);
 
-        var batchRendering = timer(function (elapsed) {
-            var t = Math.min(1, cubicInOut(elapsed / duration));
-
-            drawCanvas$2(context, interpolateParticles(t), opt, dataRange);
-
-            if (t === 1) {
-                batchRendering.stop();
-                resolve(interpolateParticles(t));
-            }
+            resolve(finalState);
         });
-    });
+    } else {
+        return new Promise(function (resolve, reject) {
+            var interpolateParticles = interpolateArray(initialState, finalState);
+
+            var batchRendering = timer(function (elapsed) {
+                var t = Math.min(1, cubicInOut(elapsed / duration));
+
+                drawCanvas$2(context, interpolateParticles(t), opt, dataRange);
+
+                if (t === 1) {
+                    batchRendering.stop();
+                    resolve(finalState);
+                }
+            });
+        });
+    }
 };
 
 var highlightNode = function highlightNode(context, opt, datum, x, y) {
@@ -23730,20 +23744,28 @@ var drawCanvas$4 = function drawCanvas(context, particles) {
 };
 
 var animateStates$4 = function animateStates(initialState, finalState, duration, context, opt, dataRange) {
-    return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+    if (opt.animation.enabled === false) {
+        return new Promise(function (resolve, reject) {
+            drawCanvas$4(context, finalState, opt, dataRange);
 
-        var batchRendering = timer(function (elapsed) {
-            var t = Math.min(1, cubicInOut(elapsed / duration));
-
-            drawCanvas$4(context, interpolateParticles(t), opt, dataRange);
-
-            if (t === 1) {
-                batchRendering.stop();
-                resolve(interpolateParticles(t));
-            }
+            resolve(finalState);
         });
-    });
+    } else {
+        return new Promise(function (resolve, reject) {
+            var interpolateParticles = interpolateArray(initialState, finalState);
+
+            var batchRendering = timer(function (elapsed) {
+                var t = Math.min(1, cubicInOut(elapsed / duration));
+
+                drawCanvas$4(context, interpolateParticles(t), opt, dataRange);
+
+                if (t === 1) {
+                    batchRendering.stop();
+                    resolve(finalState);
+                }
+            });
+        });
+    }
 };
 
 var highlightNode$2 = function highlightNode(context, p) {
@@ -23991,9 +24013,9 @@ var AbstractStackedCartesianChartWithAxes = function (_AbstractStackedCarte) {
 var CartesianStackedOptions = {
     chart: {
         margin: {
-            left: 60,
-            bottom: 50,
-            right: 10,
+            left: 20,
+            bottom: 20,
+            right: 20,
             top: 20
         }
     },
@@ -24136,20 +24158,28 @@ var drawCanvas$6 = function drawCanvas(context, state, opt) {
 };
 
 var animateStates$6 = function animateStates(initialState, finalState, duration, context, opt, dataRange) {
-    return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+    if (opt.animation.enabled === false) {
+        return new Promise(function (resolve, reject) {
+            drawCanvas$6(context, finalState, opt, dataRange);
 
-        var batchRendering = timer(function (elapsed) {
-            var t = Math.min(1, cubicInOut(elapsed / duration));
-
-            drawCanvas$6(context, interpolateParticles(t), opt, dataRange);
-
-            if (t === 1) {
-                batchRendering.stop();
-                resolve(interpolateParticles(t));
-            }
+            resolve(finalState);
         });
-    });
+    } else {
+        return new Promise(function (resolve, reject) {
+            var interpolateParticles = interpolateArray(initialState, finalState);
+
+            var batchRendering = timer(function (elapsed) {
+                var t = Math.min(1, cubicInOut(elapsed / duration));
+
+                drawCanvas$6(context, interpolateParticles(t), opt, dataRange);
+
+                if (t === 1) {
+                    batchRendering.stop();
+                    resolve(finalState);
+                }
+            });
+        });
+    }
 };
 
 var highlightArea = function highlightArea(context, state, opt, highlighted) {
@@ -24477,21 +24507,29 @@ var drawCanvas$8 = function drawCanvas(context, state, opt) {
 };
 
 var animateStates$8 = function animateStates(initialState, finalState, duration, context, opt) {
-    return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+    if (opt.animation.enabled === false) {
+        return new Promise(function (resolve, reject) {
+            drawCanvas$8(context, finalState, opt);
 
-        var batchRendering = timer(function (elapsed) {
-            var t = Math.min(1, cubicInOut(elapsed / duration));
-
-            drawCanvas$8(context, interpolateParticles(t), opt);
-
-            if (t === 1) {
-                batchRendering.stop();
-                // final state as result
-                resolve(interpolateParticles(t));
-            }
+            resolve(finalState);
         });
-    });
+    } else {
+        return new Promise(function (resolve, reject) {
+            var interpolateParticles = interpolateArray(initialState, finalState);
+
+            var batchRendering = timer(function (elapsed) {
+                var t = Math.min(1, cubicInOut(elapsed / duration));
+
+                drawCanvas$8(context, interpolateParticles(t), opt);
+
+                if (t === 1) {
+                    batchRendering.stop();
+                    // final state as result
+                    resolve(finalState);
+                }
+            });
+        });
+    }
 };
 
 var highlightNode$6 = function highlightNode(context, opt, datum, x, y) {
@@ -24757,20 +24795,28 @@ var highlightNode$8 = function highlightNode(context, opt, datum, x, y) {
 };
 
 var animateStates$10 = function animateStates(initialState, finalState, duration, context, opt, dataRange) {
-    return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+    if (opt.animation.enabled === false) {
+        return new Promise(function (resolve, reject) {
+            drawCanvas$10(context, finalState, opt, dataRange);
 
-        var batchRendering = timer(function (elapsed) {
-            var t = Math.min(1, cubicInOut(elapsed / duration));
-
-            drawCanvas$10(context, interpolateParticles(t), opt, dataRange);
-
-            if (t === 1) {
-                batchRendering.stop();
-                resolve(interpolateParticles(t));
-            }
+            resolve(finalState);
         });
-    });
+    } else {
+        return new Promise(function (resolve, reject) {
+            var interpolateParticles = interpolateArray(initialState, finalState);
+
+            var batchRendering = timer(function (elapsed) {
+                var t = Math.min(1, cubicInOut(elapsed / duration));
+
+                drawCanvas$10(context, interpolateParticles(t), opt, dataRange);
+
+                if (t === 1) {
+                    batchRendering.stop();
+                    resolve(finalState);
+                }
+            });
+        });
+    }
 };
 
 var DefaultOptions$3 = {
@@ -25029,21 +25075,29 @@ var drawCanvas$12 = function drawCanvas(context, state) {
 };
 
 var animateStates$12 = function animateStates(initialState, finalState, duration, context, opt) {
-    return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+    if (opt.animation.enabled === false) {
+        return new Promise(function (resolve, reject) {
+            drawCanvas$12(context, finalState, opt);
 
-        var batchRendering = timer(function (elapsed) {
-            var t = Math.min(1, cubicInOut(elapsed / duration));
-
-            drawCanvas$12(context, interpolateParticles(t), opt);
-
-            if (t === 1) {
-                batchRendering.stop();
-                // final state as result
-                resolve(interpolateParticles(t));
-            }
+            resolve(finalState);
         });
-    });
+    } else {
+        return new Promise(function (resolve, reject) {
+            var interpolateParticles = interpolateArray(initialState, finalState);
+
+            var batchRendering = timer(function (elapsed) {
+                var t = Math.min(1, cubicInOut(elapsed / duration));
+
+                drawCanvas$12(context, interpolateParticles(t), opt);
+
+                if (t === 1) {
+                    batchRendering.stop();
+                    // final state as result
+                    resolve(finalState);
+                }
+            });
+        });
+    }
 };
 
 var drawHiddenCanvas$2 = function drawHiddenCanvas(context, state) {
@@ -25067,13 +25121,12 @@ var drawHiddenCanvas$2 = function drawHiddenCanvas(context, state) {
                 for (var _iterator2 = n.values[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                     var b = _step2.value;
 
-                    var color = genColorByIndex(i);
+                    var color = genColorByIndex(++i);
 
                     context.beginPath();
                     context.fillStyle = color;
                     context.rect(b.x, b.y, b.w, b.h);
                     context.fill();
-                    i++;
 
                     colorMap.set(color, b);
                 }
@@ -25509,7 +25562,7 @@ var drawAxisLabel = function drawAxisLabel(context, opt) {
     };
 
     for (var i = 1; i < axisNum; i++) {
-        drawCircularText(context, getAxisLabel(opt, axes[toText(i)], toText(i)) + '', 14, 'Oswald', opt.plots.axisLabelColor, opt.chart.width / 2, opt.chart.height / 2, outerRadius + opt.plots.axisLabelOffset, axisScale(i), 5);
+        drawCircularText(context, getAxisLabel(opt, axes[toText(i)], toText(i)) + '', 14, 'Oswald', opt.plots.axisLabelColor, opt.chart.innerWidth / 2, opt.chart.innerHeight / 2, outerRadius + opt.plots.axisLabelOffset, axisScale(i), 5);
     }
 };
 
@@ -25720,20 +25773,28 @@ var highlight = function highlight(context, opt, datum) {
 };
 
 var animateStates$14 = function animateStates(initialState, finalState, duration, context, opt, dataRange) {
-    return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+    if (opt.animation.enabled === false) {
+        return new Promise(function (resolve, reject) {
+            drawCanvas$14(context, finalState, opt, dataRange);
 
-        var batchRendering = timer(function (elapsed) {
-            var t = Math.min(1, cubicInOut(elapsed / duration));
-
-            drawCanvas$14(context, interpolateParticles(t), opt, dataRange);
-
-            if (t === 1) {
-                batchRendering.stop();
-                resolve(interpolateParticles(t));
-            }
+            resolve(finalState);
         });
-    });
+    } else {
+        return new Promise(function (resolve, reject) {
+            var interpolateParticles = interpolateArray(initialState, finalState);
+
+            var batchRendering = timer(function (elapsed) {
+                var t = Math.min(1, cubicInOut(elapsed / duration));
+
+                drawCanvas$14(context, interpolateParticles(t), opt, dataRange);
+
+                if (t === 1) {
+                    batchRendering.stop();
+                    resolve(finalState);
+                }
+            });
+        });
+    }
 };
 
 var Corona = function (_AbstractStackedCarte) {
@@ -25971,11 +26032,47 @@ var Radar = function (_Corona) {
     return Radar;
 }(Corona);
 
+var getRadius$2 = function getRadius(opt) {
+    var outerRadius = Math.min(opt.chart.innerWidth / 2, opt.chart.innerHeight / 2) - opt.plots.outerRadiusMargin;
+    var innerRadius = outerRadius * opt.plots.innerRadiusRatio;
+
+    return [innerRadius, outerRadius];
+};
+
+var getLabelRadius = function getLabelRadius(opt, scale, maxR) {
+    var radius = getRadius$2(opt)[1] * scale;
+
+    var textRadius = void 0;
+
+    if (opt.plots.axisLabelAlign === true) {
+        var threshold = opt.plots.axisLabelAlignThreshold > 1 ? opt.plots.axisLabelAlignThreshold : radius * opt.plots.axisLabelAlignThreshold;
+
+        textRadius = Math.max(maxR, threshold);
+    } else {
+        textRadius = radius;
+    }
+
+    return textRadius * scale + opt.plots.axisLabelOffset;
+};
+
+var drawLabel = function drawLabel(context, opt, text, i, sliceNum, maxR, scale) {
+    var radius = getLabelRadius(opt, scale, maxR);
+    var angle = 2 * Math.PI / sliceNum;
+
+    drawCircularText(context, text + '', 14, 'Oswald', opt.plots.axisLabelColor, opt.chart.innerWidth / 2, opt.chart.innerHeight / 2, radius, angle * i + angle / 2, 0);
+};
+
 var drawCanvas$16 = function drawCanvas(context, state, opt) {
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-    context.save();
 
-    context.translate(opt.chart.width / 2, opt.chart.height / 2);
+    var gridArc = arc().startAngle(function (d) {
+        return d.startAngle;
+    }).endAngle(function (d) {
+        return d.endAngle;
+    }).innerRadius(0).outerRadius(function (d) {
+        return d.r;
+    }).padAngle(.04).context(context);
+
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
     var _iteratorError = undefined;
@@ -25984,30 +26081,418 @@ var drawCanvas$16 = function drawCanvas(context, state, opt) {
         for (var _iterator = state[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
             var d = _step.value;
 
-            context.fillStyle = d.c;
-            context.globalAlpha = d.alpha;
-            context.strokeWidth = 1;
-            context.strokeStyle = 'white';
-
-            var gridArc = arc().startAngle(function (d) {
-                return d.startAngle;
-            }).endAngle(function (d) {
-                return d.endAngle;
-            }).innerRadius(0).outerRadius(function (d) {
-                return d.r;
-            }).context(context);
-
+            context.shadowBlur = 10;
+            var maxR = 0;
             var _iteratorNormalCompletion2 = true;
             var _didIteratorError2 = false;
             var _iteratorError2 = undefined;
 
             try {
-                for (var _iterator2 = d.values[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                for (var _iterator2 = d.slice[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                     var e = _step2.value;
+
+                    context.save();
+                    context.translate(opt.chart.width / 2, opt.chart.height / 2);
+                    context.beginPath();
+                    context.fillStyle = getTransparentColor(e.c, e.alpha);
+                    context.strokeWidth = 1;
+                    context.strokeStyle = e.c;
+                    context.shadowColor = e.c;
 
                     gridArc(e);
                     context.fill();
                     context.stroke();
+                    context.restore();
+
+                    maxR = Math.max(maxR, e.r);
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            drawLabel(context, opt, d.dimension, d.i, state.length, maxR, 1);
+        }
+    } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+    } finally {
+        try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+            }
+        } finally {
+            if (_didIteratorError) {
+                throw _iteratorError;
+            }
+        }
+    }
+};
+
+var animateStates$16 = function animateStates(initialState, finalState, duration, context, opt) {
+    if (opt.animation.enabled === false) {
+        return new Promise(function (resolve, reject) {
+            drawCanvas$16(context, finalState, opt);
+
+            resolve(finalState);
+        });
+    } else {
+        return new Promise(function (resolve, reject) {
+            var interpolateParticles = interpolateArray(initialState, finalState);
+
+            var batchRendering = timer(function (elapsed) {
+                var t = Math.min(1, cubicInOut(elapsed / duration));
+
+                drawCanvas$16(context, interpolateParticles(t), opt);
+
+                if (t === 1) {
+                    batchRendering.stop();
+                    resolve(finalState);
+                }
+            });
+        });
+    }
+};
+
+var drawPetal = function drawPetal(context, selection, opt, sliceNum) {
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+    selection.each(function (g) {
+        var group = select(this);
+        var scale = group.attr('scale');
+
+        var maxR = 0;
+        group.selectAll('.petal').each(function (d) {
+            context.save();
+            context.translate(opt.chart.innerWidth / 2, opt.chart.innerHeight / 2);
+
+            var petal = select(this);
+            var color = petal.attr('fill');
+
+            context.beginPath();
+            context.fillStyle = color;
+            context.fillStyle = getTransparentColor(color, petal.attr('opacity'));
+            context.strokeWidth = 1;
+            context.strokeStyle = color;
+            context.shadowColor = color;
+            context.shadowBlur = 10;
+
+            var p = new Path2D(petal.attr('d'));
+            context.scale(scale, scale);
+            context.fill(p);
+            context.stroke(p);
+            context.closePath();
+            context.restore();
+
+            if (!isNaN$1$1(+petal.attr('r'))) {
+                maxR = Math.max(maxR, +petal.attr('r'));
+            }
+        });
+
+        drawLabel(context, opt, g.dimension, g.i, sliceNum, maxR, scale);
+    });
+};
+
+var LARGE_ARRAY_SIZE$3 = 200;
+
+/**
+ * The base implementation of methods like `_.difference` without support
+ * for excluding multiple arrays or iteratee shorthands.
+ *
+ * @private
+ * @param {Array} array The array to inspect.
+ * @param {Array} values The values to exclude.
+ * @param {Function} [iteratee] The iteratee invoked per element.
+ * @param {Function} [comparator] The comparator invoked per element.
+ * @returns {Array} Returns the new array of filtered values.
+ */
+function baseDifference(array, values, iteratee, comparator) {
+  var index = -1,
+      includes = arrayIncludes,
+      isCommon = true,
+      length = array.length,
+      result = [],
+      valuesLength = values.length;
+
+  if (!length) {
+    return result;
+  }
+  if (iteratee) {
+    values = arrayMap$1(values, baseUnary$1(iteratee));
+  }
+  if (comparator) {
+    includes = arrayIncludesWith;
+    isCommon = false;
+  } else if (values.length >= LARGE_ARRAY_SIZE$3) {
+    includes = cacheHas$1;
+    isCommon = false;
+    values = new SetCache$1(values);
+  }
+  outer: while (++index < length) {
+    var value = array[index],
+        computed = iteratee == null ? value : iteratee(value);
+
+    value = comparator || value !== 0 ? value : 0;
+    if (isCommon && computed === computed) {
+      var valuesIndex = valuesLength;
+      while (valuesIndex--) {
+        if (values[valuesIndex] === computed) {
+          continue outer;
+        }
+      }
+      result.push(value);
+    } else if (!includes(values, computed, comparator)) {
+      result.push(value);
+    }
+  }
+  return result;
+}
+
+var spreadableSymbol = _Symbol ? _Symbol.isConcatSpreadable : undefined;
+
+/**
+ * Checks if `value` is a flattenable `arguments` object or array.
+ *
+ * @private
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is flattenable, else `false`.
+ */
+function isFlattenable(value) {
+  return isArray(value) || isArguments$1(value) || !!(spreadableSymbol && value && value[spreadableSymbol]);
+}
+
+function baseFlatten(array, depth, predicate, isStrict, result) {
+  var index = -1,
+      length = array.length;
+
+  predicate || (predicate = isFlattenable);
+  result || (result = []);
+
+  while (++index < length) {
+    var value = array[index];
+    if (depth > 0 && predicate(value)) {
+      if (depth > 1) {
+        // Recursively flatten arrays (susceptible to call stack limits).
+        baseFlatten(value, depth - 1, predicate, isStrict, result);
+      } else {
+        arrayPush$1(result, value);
+      }
+    } else if (!isStrict) {
+      result[result.length] = value;
+    }
+  }
+  return result;
+}
+
+/**
+ * A faster alternative to `Function#apply`, this function invokes `func`
+ * with the `this` binding of `thisArg` and the arguments of `args`.
+ *
+ * @private
+ * @param {Function} func The function to invoke.
+ * @param {*} thisArg The `this` binding of `func`.
+ * @param {Array} args The arguments to invoke `func` with.
+ * @returns {*} Returns the result of `func`.
+ */
+function apply$1(func, thisArg, args) {
+  switch (args.length) {
+    case 0:
+      return func.call(thisArg);
+    case 1:
+      return func.call(thisArg, args[0]);
+    case 2:
+      return func.call(thisArg, args[0], args[1]);
+    case 3:
+      return func.call(thisArg, args[0], args[1], args[2]);
+  }
+  return func.apply(thisArg, args);
+}
+
+var nativeMax$2 = Math.max;
+
+/**
+ * A specialized version of `baseRest` which transforms the rest array.
+ *
+ * @private
+ * @param {Function} func The function to apply a rest parameter to.
+ * @param {number} [start=func.length-1] The start position of the rest parameter.
+ * @param {Function} transform The rest array transform.
+ * @returns {Function} Returns the new function.
+ */
+function overRest$1(func, start, transform) {
+  start = nativeMax$2(start === undefined ? func.length - 1 : start, 0);
+  return function () {
+    var args = arguments,
+        index = -1,
+        length = nativeMax$2(args.length - start, 0),
+        array = Array(length);
+
+    while (++index < length) {
+      array[index] = args[start + index];
+    }
+    index = -1;
+    var otherArgs = Array(start + 1);
+    while (++index < start) {
+      otherArgs[index] = args[index];
+    }
+    otherArgs[start] = transform(array);
+    return apply$1(func, this, otherArgs);
+  };
+}
+
+/**
+ * Creates a function that returns `value`.
+ *
+ * @static
+ * @memberOf _
+ * @since 2.4.0
+ * @category Util
+ * @param {*} value The value to return from the new function.
+ * @returns {Function} Returns the new constant function.
+ * @example
+ *
+ * var objects = _.times(2, _.constant({ 'a': 1 }));
+ *
+ * console.log(objects);
+ * // => [{ 'a': 1 }, { 'a': 1 }]
+ *
+ * console.log(objects[0] === objects[1]);
+ * // => true
+ */
+function constant$8(value) {
+  return function () {
+    return value;
+  };
+}
+
+var baseSetToString$1 = !defineProperty$1$1 ? identity$6 : function (func, string) {
+  return defineProperty$1$1(func, 'toString', {
+    'configurable': true,
+    'enumerable': false,
+    'value': constant$8(string),
+    'writable': true
+  });
+};
+
+/** Used to detect hot functions by number of calls within a span of milliseconds. */
+var HOT_COUNT$1 = 800;
+var HOT_SPAN$1 = 16;
+
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeNow$1 = Date.now;
+
+/**
+ * Creates a function that'll short out and invoke `identity` instead
+ * of `func` when it's called `HOT_COUNT` or more times in `HOT_SPAN`
+ * milliseconds.
+ *
+ * @private
+ * @param {Function} func The function to restrict.
+ * @returns {Function} Returns the new shortable function.
+ */
+function shortOut$1(func) {
+  var count = 0,
+      lastCalled = 0;
+
+  return function () {
+    var stamp = nativeNow$1(),
+        remaining = HOT_SPAN$1 - (stamp - lastCalled);
+
+    lastCalled = stamp;
+    if (remaining > 0) {
+      if (++count >= HOT_COUNT$1) {
+        return arguments[0];
+      }
+    } else {
+      count = 0;
+    }
+    return func.apply(undefined, arguments);
+  };
+}
+
+var setToString$1 = shortOut$1(baseSetToString$1);
+
+function baseRest$1(func, start) {
+  return setToString$1(overRest$1(func, start, identity$6), func + '');
+}
+
+function isArrayLikeObject$1(value) {
+  return isObjectLike(value) && isArrayLike$1(value);
+}
+
+var difference = baseRest$1(function (array, values) {
+  return isArrayLikeObject$1(array) ? baseDifference(array, baseFlatten(values, 1, isArrayLikeObject$1, true)) : [];
+});
+
+var getOrderedDimensions = function getOrderedDimensions(opt, dimensions) {
+    var orderDef = opt.plots.dimensionOrder;
+    if (orderDef !== null) {
+        if (isFunction(orderDef)) {
+            return dimensions.order(orderDef);
+        } else if (isArray(orderDef)) {
+            var diff = difference(dimensions, orderDef);
+            if (diff.length > 0) {
+                console.warn('rose options.plots.dimensionOrder contains inconsistent values: ' + diff);
+            }
+
+            return orderDef;
+        }
+    }
+
+    return dimensions;
+};
+
+var drawHiddenCanvas$4 = function drawHiddenCanvas(context, state, opt) {
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    var colorMap = new Map();
+
+    var gridArc = arc().startAngle(function (d) {
+        return d.startAngle;
+    }).endAngle(function (d) {
+        return d.endAngle;
+    }).innerRadius(0).outerRadius(function (d) {
+        return d.r;
+    }).padAngle(.04).context(context);
+
+    var i = 0;
+
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+        for (var _iterator = state[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var d = _step.value;
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = d.slice[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var e = _step2.value;
+
+                    var color = genColorByIndex(++i);
+
+                    context.save();
+                    context.translate(opt.chart.width / 2, opt.chart.height / 2);
+                    context.beginPath();
+                    context.fillStyle = color;
+
+                    gridArc(e);
+                    context.fill();
+                    context.restore();
+
+                    colorMap.set(color, e);
                 }
             } catch (err) {
                 _didIteratorError2 = true;
@@ -26039,24 +26524,7 @@ var drawCanvas$16 = function drawCanvas(context, state, opt) {
         }
     }
 
-    context.restore();
-};
-
-var animateStates$16 = function animateStates(initialState, finalState, duration, context, opt) {
-    return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
-
-        var batchRendering = timer(function (elapsed) {
-            var t = Math.min(1, cubicInOut(elapsed / duration));
-
-            drawCanvas$16(context, interpolateParticles(t), opt);
-
-            if (t === 1) {
-                batchRendering.stop();
-                resolve(interpolateParticles(t));
-            }
-        });
-    });
+    return colorMap;
 };
 
 var RoseOpt = {
@@ -26065,11 +26533,16 @@ var RoseOpt = {
     },
 
     plots: {
-        innerRadiusRatio: 0,
-        outerRadiusMargin: 60,
-        stackLayout: false, // stack areas
-        stackMethod: Stacks.Zero
+        opacity: 0.5,
+        outerRadiusMargin: 10,
+        axisLabel: null,
+        axisLabelAlign: true,
+        axisLabelAlignThreshold: 0.5,
+        axisLabelOffset: 10,
+        axisLabelColor: 'black',
+        dimensionOrder: null
     }
+
     /**
      *
      *"Death is a great price to pay for a red rose," cried the Nightingale,
@@ -26095,83 +26568,139 @@ var Rose = function (_AbstractStackedCarte) {
         value: function _animate() {
             var _this2 = this;
 
-            var _getRadius = getRadius(this._options),
-                _getRadius2 = slicedToArray(_getRadius, 2),
-                innerRadius = _getRadius2[0],
-                outerRadius = _getRadius2[1];
+            var colorScale = ordinal().range(this._color.range());
+            var c = function c(d) {
+                return colorScale(d);
+            };
+            var outerRadius = getRadius$2(this._options)[1];
 
-            var dataRange = [this._data.minY, this._data.maxY];
-            var radiusScale = linear$2().domain(dataRange.map(function (d) {
-                return _this2._getMetric().scale(d);
-            })).range([20, outerRadius]);
+            // y is area
+            // https://understandinguncertainty.org/node/214
+            var radiusOfArea = function radiusOfArea(area) {
+                return Math.sqrt(area * 3 / Math.PI);
+            };
 
-            var initialState = this.previousState ? this.previousState : this._data.nested.map(function (d) {
+            var radiusScale = linear$2().domain([0, radiusOfArea(this._data.maxY)]).range([0, outerRadius]);
+
+            var r = function r(d) {
+                return radiusScale(radiusOfArea(d));
+            };
+
+            var sliceNum = this._getDimension().values.length;
+            var angleScale = linear$2().domain([0, sliceNum]).range([0, 2 * Math.PI]);
+
+            var dimensions = getOrderedDimensions(this._options, this._getDimension().values);
+            var finalState = dimensions.map(function (d, i) {
+                var array = _this2._data.nested.map(function (e) {
+                    return {
+                        key: e.key,
+                        s: e.key,
+                        c: c(e.key),
+                        alpha: _this2._options.plots.opacity,
+                        startAngle: angleScale(i),
+                        endAngle: angleScale(i + 1),
+                        r: r(e.values[i]._y),
+                        data: e.values[i]
+                    };
+                });
+
+                // larger slice are drawn first
+                array.sort(function (a, b) {
+                    return b.r - a.r;
+                });
+
                 return {
-                    key: d.key,
-                    c: _this2._c(d),
-                    s: d.key,
-                    alpha: 0,
-                    strokeAlpha: _this2._options.plots.strokeOpacity,
-                    values: d.values.map(function (e, i) {
-                        var angleScale = linear$2().domain([0, d.values.length]).range([0, 2 * Math.PI]);
-
-                        return {
-                            key: d.key,
-                            startAngle: angleScale(i),
-                            endAngle: angleScale(i + 1),
-                            r: 0,
-                            data: e.data
-                        };
-                    })
+                    dimension: d,
+                    i: i,
+                    slice: array
                 };
             });
-
-            var finalState = this._data.nested.map(function (d) {
-                return {
-                    key: d.key,
-                    c: _this2._c(d),
-                    s: d.key,
-                    alpha: _this2._options.plots.areaOpacity,
-                    strokeAlpha: _this2._options.plots.strokeOpacity,
-                    values: d.values.map(function (e, i) {
-                        var angleScale = linear$2().domain([0, d.values.length]).range([0, 2 * Math.PI]);
-
-                        return {
-                            key: d.key,
-                            startAngle: angleScale(i),
-                            endAngle: angleScale(i + 1),
-                            r: radiusScale(e.y),
-                            data: e.data
-                        };
-                    })
-                };
-            });
-            // cache finalState as the initial state of next animation call
-            this.previousState = finalState;
 
             var that = this;
             var ctx = that._frontContext;
             var opt = that._options;
 
-            animateStates$16(initialState, finalState, opt.animation.duration.update, ctx, opt).then(function (res) {
-                // that._voronoi = applyVoronoi(ctx, opt, finalState.reduce((acc, p)=>{
-                //     acc = acc.concat(p.values.map(d=>{
-                //         return {
-                //             s: p.key,
-                //             label: that._getDimensionVal(d.data),
-                //             metric: d.data[p.key],
-                //             x: d.r * Math.sin(d.angle) + opt.chart.width / 2,
-                //             y: opt.chart.height - (d.r * Math.cos(d.angle) + opt.chart.height / 2),
-                //             c: p.c,
-                //             d: d,
-                //             data: d.data
-                //         }
-                //     }));
-                //     return acc;
-                // }, []));
+            var enableMouse = function enableMouse() {
+                var colorMap = drawHiddenCanvas$4(that._hiddenContext, finalState, opt);
 
+                function mouseMoveHandler() {
+                    // get the current mouse position
+                    var _mouse = mouse(this),
+                        _mouse2 = slicedToArray(_mouse, 2),
+                        mx = _mouse2[0],
+                        my = _mouse2[1];
 
-            });
+                    var col = that._hiddenContext.getImageData(mx * that._canvasScale, my * that._canvasScale, 1, 1).data;
+                    var colString = "rgb(" + col[0] + "," + col[1] + "," + col[2] + ")";
+                    var node = colorMap.get(colString);
+
+                    if (node) {
+                        var html = that.tooltip(node.data.data);
+
+                        that._tooltip.html(html).transition().duration(that._options.animation.tooltip).style("left", mx + that._options.tooltip.offset[0] + "px").style("top", my + that._options.tooltip.offset[1] + "px").style("opacity", 1);
+                    } else {
+                        that._tooltip.transition().duration(that._options.animation.tooltip).style("opacity", 0);
+                    }
+                }
+
+                function mouseOutHandler() {
+                    that._tooltip.transition().duration(that._options.animation.tooltip).style("opacity", 0);
+                }
+
+                that._frontCanvas.on('mousemove', mouseMoveHandler);
+                that._frontCanvas.on('mouseout', mouseOutHandler);
+
+                that._listeners.call('rendered');
+            };
+
+            if (!this.previousState && finalState.length < 30) {
+                var drawCanvasInTransition = function drawCanvasInTransition(d, i) {
+                    return function (t) {
+                        drawPetal(ctx, that._detachedContainer.selectAll('.petal-group'), opt, sliceNum);
+                    };
+                };
+
+                this._detachedContainer.attr("transform", "translate(" + (opt.chart.margin.left + opt.chart.innerWidth / 2) + "," + (opt.chart.margin.top + opt.chart.innerHeight / 2) + ")");
+
+                var dataUpdate = this._detachedContainer.selectAll('.petal-group').data(finalState);
+                var dataJoin = dataUpdate.enter();
+
+                var arcDiagram = arc().startAngle(function (d) {
+                    return d.startAngle;
+                }).endAngle(function (d) {
+                    return d.endAngle;
+                }).innerRadius(0).outerRadius(function (d) {
+                    return d.r;
+                }).padAngle(.04);
+
+                var groups = dataJoin.append("g").attr('class', 'petal-group').attr('scale', 0).attr('transform', 'scale(0,0)');
+
+                groups.selectAll('.petal').data(function (d) {
+                    return d.slice;
+                }).enter().append('path').attr("class", 'petal').attr("series", function (d) {
+                    return d.s;
+                }).attr("dimension", function (d) {
+                    return _this2._getDimensionVal(d.data.data);
+                }).attr('r', function (d) {
+                    return d.r;
+                }).attr("d", arcDiagram).attr('fill', function (d) {
+                    return d.c;
+                }).attr('opacity', function (d) {
+                    return d.alpha;
+                });
+
+                groups.transition().delay(500).duration(function (d, i) {
+                    return 150 * i;
+                }).attr('scale', 1).attr('transform', 'scale(1,1)').tween("blooming.petal", drawCanvasInTransition).on('end', function () {
+                    enableMouse();
+                });
+            } else {
+                animateStates$16(this.previousState, finalState, opt.animation.duration.update, ctx, opt).then(function (res) {
+                    enableMouse();
+                });
+            }
+
+            this.previousState = finalState;
         }
     }, {
         key: 'createOptions',
@@ -26233,7 +26762,7 @@ DragEvent.prototype.on = function () {
   return value === this._ ? this : value;
 };
 
-var constant$9 = function (x) {
+var constant$11 = function (x) {
   return function () {
     return x;
   };
@@ -26749,11 +27278,11 @@ function brush$1(dim) {
   }
 
   brush.extent = function (_) {
-    return arguments.length ? (extent = typeof _ === "function" ? _ : constant$9([[+_[0][0], +_[0][1]], [+_[1][0], +_[1][1]]]), brush) : extent;
+    return arguments.length ? (extent = typeof _ === "function" ? _ : constant$11([[+_[0][0], +_[0][1]], [+_[1][0], +_[1][1]]]), brush) : extent;
   };
 
   brush.filter = function (_) {
-    return arguments.length ? (filter = typeof _ === "function" ? _ : constant$9(!!_), brush) : filter;
+    return arguments.length ? (filter = typeof _ === "function" ? _ : constant$11(!!_), brush) : filter;
   };
 
   brush.handleSize = function (_) {
@@ -26885,6 +27414,7 @@ var DefaultOpt$1 = {
             offset: 10
         },
 
+        enableMiniBar: true,
         miniBarWidth: 50
 
     }
@@ -26897,11 +27427,21 @@ var miniWidth = function miniWidth(opt) {
 var BottomAxisOffset = 10;
 var InitialBrushHeight = 200;
 
+var forceMetricDesc = function forceMetricDesc(userOpt) {
+    userOpt.ordering = {
+        accessor: userOpt.data.y[0].accessor,
+        direction: 'desc'
+    };
+};
+
 var Row = function (_AbstractBasicCartesi) {
     inherits(Row, _AbstractBasicCartesi);
 
     function Row(canvasId, userOpt) {
         classCallCheck(this, Row);
+
+        forceMetricDesc(userOpt);
+
         return possibleConstructorReturn(this, (Row.__proto__ || Object.getPrototypeOf(Row)).call(this, canvasId, userOpt));
     }
 
@@ -26911,10 +27451,16 @@ var Row = function (_AbstractBasicCartesi) {
             var _this2 = this;
 
             this._getDimension().scale.range([0, this._options.chart.innerHeight]);
-            this.drawMiniSvg(this._data);
-            this.drawMainBars(this._data.filter(function (d) {
-                return _this2._x(d) < InitialBrushHeight;
-            }));
+
+            if (this._options.plots.enableMiniBar === true) {
+                this.drawMiniSvg(this._data);
+                this.drawMainBars(this._data.filter(function (d) {
+                    return _this2._x(d) < InitialBrushHeight;
+                }));
+            } else {
+                this.drawMainBars(this._data);
+                this.updateAxis(this._data);
+            }
         }
     }, {
         key: 'drawMiniSvg',
@@ -26925,17 +27471,22 @@ var Row = function (_AbstractBasicCartesi) {
             var height = this._options.chart.innerHeight;
 
             var miniX = miniWidth(this._options);
+            this._container.select('.mini-group').remove();
 
-            this.miniSvg = this._container.append('g').attr('width', width).attr('height', height).attr("transform", "translate(" + miniX + "," + this._options.chart.margin.top + ")");
+            this.miniSvg = this._container.append('g').attr('width', width).attr('height', height).attr('class', 'mini-group').attr("transform", "translate(" + miniX + "," + this._options.chart.margin.top + ")");
 
-            var miniXScale = this._getDimension().scale.copy();
+            var miniXScale = band().domain(data.map(function (d) {
+                return _this3._getDimensionVal(d);
+            })).range([0, this._options.chart.innerHeight - BottomAxisOffset - 5]).paddingInner(.1);
             var miniYScale = linear$2().domain(extent(data, this._getMetricVal)).range([0, this._options.plots.miniBarWidth]);
 
             var h = miniXScale.bandwidth();
             var y = function y(d) {
                 return miniYScale(_this3._getMetricVal(d));
             };
-            var x = this._x;
+            var x = function x(d) {
+                return miniXScale(_this3._getDimensionVal(d));
+            };
 
             var dataUpdate = this.miniSvg.selectAll('.mini').data(data);
             var dataJoin = dataUpdate.enter();
@@ -27035,7 +27586,7 @@ var Row = function (_AbstractBasicCartesi) {
             })).range([0, this._options.chart.innerHeight - BottomAxisOffset - 5]).paddingInner(.1);
 
             var yScale = this._makeMetricScale(data);
-            var mainWidth = this._options.chart.innerWidth - this._options.plots.miniBarWidth;
+            var mainWidth = this._options.plots.enableMiniBar === true ? this._options.chart.innerWidth - this._options.plots.miniBarWidth : this._options.chart.innerWidth;
 
             var h = xScale.bandwidth();
             var x = function x(d) {
@@ -27141,6 +27692,15 @@ var Row = function (_AbstractBasicCartesi) {
                 that._frontCanvas.on('mouseout', mouseOutHandler);
                 that._listeners.call('rendered');
             });
+        }
+    }, {
+        key: 'options',
+        value: function options(userOpt) {
+            if (userOpt) {
+                forceMetricDesc(userOpt);
+            }
+
+            return get$2(Row.prototype.__proto__ || Object.getPrototypeOf(Row.prototype), 'options', this).call(this, userOpt);
         }
     }, {
         key: 'createOptions',

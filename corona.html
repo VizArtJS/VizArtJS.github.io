@@ -155,10 +155,10 @@ const options = {
 		},
 
 	data: {
-		s: { name: 'Page', type: 'string', accessor: 'page'},
+		s: { name: 'Appid', type: 'string', accessor: 'appid'},
 		x: { name: 'Hour', type: 'number', accessor: 'hour'},
 		y: [
-				{ name: 'Views', type: 'number', accessor: 'views', yAxis: 0},
+				{ name: 'Downloads', type: 'number', accessor: 'downloads', yAxis: 0},
 		],
 	},
 
@@ -167,7 +167,7 @@ const options = {
 		levelColor: 'rgba(255, 255, 255, 0.2)',
 		levelLabelColor: 'rgba(255, 255, 255, 0.8)',
 		levelLabelPosition: 'top', //'top', 'bottom', 'right'
-		levelLabel: function(d){ return d + ' views'},
+		levelLabel: function(d){ return d + ' downloads'},
 
 		axisLabel: function(d, i){ return i===0 ? '' : d + 'am'},
 		axisLabelOffset: 35,
@@ -197,7 +197,7 @@ const options = {
 };
 
 const data = [
-	{ page: 'downloads/d3', views: 9, hour: 4 }
+	{ appid: 'com.scribd.Temp', downloads: 9, hour: 4 }
 ]
 
 const chart = new Corona('#chart', options);

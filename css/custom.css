@@ -21,8 +21,5 @@
 }
 
 .ocean {
-	background-image: url(../images/ocean.jpg);
-	background-repeat: no-repeat;
-	background-size: cover;
-
+	background-image: linear-gradient(to top, #48c6ef 0%, #6f86d6 100%);
 }

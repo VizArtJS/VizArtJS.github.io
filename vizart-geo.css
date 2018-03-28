@@ -6,6 +6,7 @@
     pointer-events: auto !important;
 }
 
+
 .vizart-tooltip {
     position: absolute;
     pointer-events: none;
@@ -37,10 +38,3 @@
 .vizart-tooltip .tooltip-row .col:last-child {
     margin-right: 10px;
 }
-.vizart-chart .scatter-dot:hover {
-    cursor: pointer;
-}
-.radar-invisible-circle:hover {
-    cursor: pointer;
-}
-

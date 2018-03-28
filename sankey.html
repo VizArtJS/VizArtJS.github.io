@@ -139,7 +139,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { Sankey } from 'vizart-path';
+import { sankey } from 'vizart-path';
 import 'vizart-path/dist/vizart-path.css';
 
 const options = {
@@ -149,7 +149,7 @@ const options = {
 };
 
 const _data = ...
-const _chart = new Sankey('#chart', options);
+const _chart = sankey('#chart', options);
 _chart.render(_data);
 						</pre>
 					</div>
@@ -218,7 +218,7 @@ _chart.render(_data);
 			];
 
 
-			let _chart = new VizArtPath.Sankey('#chart', {
+			let _chart = VizArtPath.sankey('#chart', {
 				chart: {
 					margin: {
 						top: 30,

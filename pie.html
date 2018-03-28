@@ -150,7 +150,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { Pie } from 'vizart-basic';
+import { pie } from 'vizart-basic';
 import 'vizart-basic/dist/vizart-basic.css';
 
 const options = {
@@ -169,7 +169,7 @@ const fakeData = [
 	{ age: 19, income: 9 }
 ]
 
-const _chart = new Pie('#chart', options);
+const _chart = pie('#chart', options);
 _chart.render(fakeData);
 						</pre>
 					</div>
@@ -240,7 +240,7 @@ _chart.render(fakeData);
 		};
 
 		$.getJSON('./data/basic.json', res=> {
-			let chart = new VizArtBasic.Pie('#chart', options);
+			let chart = VizArtBasic.pie('#chart', options);
 			chart.render(res);
 
 			let _opt = chart.options();
@@ -248,22 +248,22 @@ _chart.render(fakeData);
 			// change color
 			$('#red').click(function(){
 				_opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
-				chart.transitionColor(_opt.color);
+				chart.color(_opt.color);
 			});
 
 			$('#green').click(function(){
 				_opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-				chart.transitionColor(_opt.color)
+				chart.color(_opt.color)
 			});
 
 			$('#warm').click(function(){
 				_opt.color.scheme = "Warm";
-				chart.transitionColor(_opt.color)
+				chart.color(_opt.color)
 			});
 
 			$('#cool').click(function(){
 				_opt.color.scheme = "Cool";
-				chart.transitionColor(_opt.color);
+				chart.color(_opt.color);
 			});
 
 			$('#x-asc').click(function(){

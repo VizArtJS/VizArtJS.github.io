@@ -135,11 +135,11 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { Sunburst } from 'vizart-hierarchy';
+import { sunburst } from 'vizart-hierarchy';
 import 'vizart-hierarchy/dist/vizart-hierarchy.css';
 
 d3.json("./data/flare.json", (data)=> {
-	let chart = Sunburst('#chart', {
+	let chart = sunburst('#chart', {
 		chart: {
 			margin: {
 				top: 40,
@@ -195,7 +195,7 @@ d3.json("./data/flare.json", (data)=> {
 	$(document).ready(() => {
 		PR.prettyPrint();
 
-		let chart = new VizArtHierarchy.Sunburst('#chart', {
+		let chart = VizArtHierarchy.sunburst('#chart', {
 			chart: {
 				margin: {
 					left: 0,

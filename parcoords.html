@@ -145,7 +145,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { ParallelCoordinates } from 'vizart-path';
+import { parallelCoordinates } from 'vizart-path';
 import 'vizart-path/dist/vizart-path.css';
 
 const options = {
@@ -153,13 +153,14 @@ const options = {
 		margin: { left: 30, right: 30, top: 10, bottom: 30 }
 	},
 	plots: {
+		colorDimension: 'group',
 		hiddenAxis: ['name'],
 	}
 };
 
-const _data = ...
-const _chart = new ParallelCoordinates('#chart', options);
-_chart.render(_data);
+const data = ...
+const chart = parallelCoordinates('#chart', options);
+chart.render(data);
 						</pre>
 					</div>
 
@@ -205,7 +206,7 @@ _chart.render(_data);
 	$(document).ready(() => {
 		PR.prettyPrint();
 
-		let _chart = new VizArtPath.ParallelCoordinates('#chart', {
+		let _chart = VizArtPath.parallelCoordinates('#chart', {
 			chart: {
 				margin: {
 					left: 20,
@@ -221,6 +222,7 @@ _chart.render(_data);
 						'#ffdd00', '#9ac2b9', '#a7a9ac', '#bbbb42', '#e6a6ce']
 			},
 			plots: {
+				colorDimension: 'group',
 				hiddenAxis: ['name'],
 			}
 		});
@@ -238,17 +240,17 @@ _chart.render(_data);
 			// change color
 			$('#red').click(function(){
 				_opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
-				_chart.transitionColor(_opt.color);
+				_chart.color(_opt.color);
 			});
 
 			$('#green').click(function(){
 				_opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-				_chart.transitionColor(_opt.color)
+				_chart.color(_opt.color)
 			});
 
 			$('#purple').click(function(){
 				_opt.color.scheme = ['#e7e1ef','#c994c7','#dd1c77'];
-				_chart.transitionColor(_opt.color)
+				_chart.color(_opt.color)
 			});
 
 		});

@@ -148,7 +148,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { Stream } from 'vizart-basic';
+import { stream } from 'vizart-basic';
 import 'vizart-basic/dist/vizart-basic.css';
 
 const options = {
@@ -168,7 +168,7 @@ const _data = [
 	{ age: 19, income: 9, dep: 'science' }
 ]
 
-const _chart = new Stream('#chart', options);
+const _chart = stream('#chart', options);
 _chart.render(_data);
 						</pre>
 					</div>
@@ -230,7 +230,7 @@ _chart.render(_data);
 		};
 
 		$.getJSON('./data/basic-stacked.json', res=>{
-			let chart = new VizArtBasic.Stream('#chart', options);
+			let chart = VizArtBasic.stream('#chart', options);
 			chart.render(res);
 
 			let _opt = chart.options();
@@ -238,17 +238,17 @@ _chart.render(_data);
 			// change color
 			$('#red').click(function () {
 				_opt.color.scheme = ['#ffe100', '#ffbf00', '#ff5730'];
-				chart.transitionColor(_opt.color);
+				chart.color(_opt.color);
 			});
 
 			$('#green').click(function () {
 				_opt.color.scheme = ['#f7fcb9', '#addd8e', '#31a354'];
-				chart.transitionColor(_opt.color)
+				chart.color(_opt.color)
 			});
 
 			$('#accent').click(function () {
 				_opt.color.scheme = "Accent";
-				chart.transitionColor(_opt.color)
+				chart.color(_opt.color)
 			});
 
 			$('#rainbow').click(function () {
@@ -270,24 +270,18 @@ _chart.render(_data);
 					"#FF9800",
 					"#FF5722"
 				];
-				chart.transitionColor(_opt.color);
+				chart.color(_opt.color);
 			});
 
 			$('#wiggle').click(function () {
-				_opt.plots.stackMethod = "wiggle";
-				chart.options(_opt);
-				chart.update();
+				chart.wiggle();
 			});
 
 			$('#divergent').click(function () {
-				_opt.plots.stackMethod = "divergent";
-				chart.options(_opt);
-				chart.update();
+				chart.divergent();
 			});
 			$('#silhouette').click(function () {
-				_opt.plots.stackMethod = "silhouette";
-				chart.options(_opt);
-				chart.update();
+				chart.silhouette();
 			});
 		});
 

@@ -203,14 +203,14 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { SequentialSunburst } from 'vizart-hierarchy';
+import { sequentialSunburst, buildHierarchy } from 'vizart-hierarchy';
 import 'vizart-hierarchy/dist/vizart-hierarchy.css';
 
 d3.text("./data/visit-sequences.csv", (text)=> {
 	let csv = d3.csvParseRows(text);
-	let json = VizArtHierarchy.buildHierarchy(csv);
+	let json = buildHierarchy(csv);
 
-	let sunburst = SequentialSunburst('#chart', {
+	let sunburst = sequentialSunburst('#chart', {
 		chart: {
 			margin: {
 				top: 40,
@@ -219,11 +219,12 @@ d3.text("./data/visit-sequences.csv", (text)=> {
 				right: 0
 			},
 		},
-	},{
-		sequence: '#sequence',
-		explanation: '#explanation',
-		percentage: '#percentage'
-	});
+		uiConfig: {
+			sequence: '#sequence',
+			explanation: '#explanation',
+			percentage: '#percentage'
+		}
+	},);
 
 	sunburst.render(json);
 	sunburst.drawLegend('#legend')
@@ -277,7 +278,7 @@ d3.text("./data/visit-sequences.csv", (text)=> {
 			let csv = d3.csvParseRows(text);
 			let json = VizArtHierarchy.buildHierarchy(csv);
 
-			let sunburst = new VizArtHierarchy.SequentialSunburst('#chart', {
+			let sunburst = VizArtHierarchy.sequentialSunburst('#chart', {
 				chart: {
 					margin: {
 						top: 40,
@@ -285,6 +286,12 @@ d3.text("./data/visit-sequences.csv", (text)=> {
 						left: 0,
 						right: 0
 					},
+				},
+
+				uiConfig: {
+					sequence: '#sequence',
+					explanation: '#explanation',
+					percentage: '#percentage'
 				},
 
 				color: {
@@ -308,11 +315,7 @@ d3.text("./data/visit-sequences.csv", (text)=> {
 					],
 					scaleType: 'categorical'
 				}
-			},{
-				sequence: '#sequence',
-				explanation: '#explanation',
-				percentage: '#percentage'
-			});
+			},);
 
 			sunburst.render(json);
 			sunburst.drawLegend('#legend')

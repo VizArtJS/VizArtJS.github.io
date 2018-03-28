@@ -144,7 +144,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { Chord } from 'vizart-path';
+import { chord } from 'vizart-path';
 import 'vizart-path/dist/vizart-path.css';
 
 const options = {
@@ -165,7 +165,7 @@ const _data = [
 	{ importer1: 'U.S.', importer2: 'China', flow1: 132, flow2: 32 }
 ]
 
-const _chart = new Chord('#chart', options);
+const _chart = chord('#chart', options);
 _chart.render(_data);
 						</pre>
 					</div>
@@ -243,7 +243,7 @@ _chart.render(_data);
 			];
 
 
-			let chord = new VizArtPath.Chord('#chart', {
+			let chord = VizArtPath.chord('#chart', {
 				chart: {
 					margin: {
 						top: 90,

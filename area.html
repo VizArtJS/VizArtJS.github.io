@@ -143,7 +143,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { Area } from 'vizart-basic';
+import { area } from 'vizart-basic';
 import 'vizart-basic/dist/vizart-basic.css';
 
 const options = {
@@ -165,7 +165,7 @@ const options = {
 		}
 };
 
-const chart = new Area('#chart', options);
+const chart = area('#chart', options);
 d3.csv('assets/nasdaq1985-2012.csv', function(err, res){
 	area.render(res);
 });
@@ -242,7 +242,7 @@ d3.csv('assets/nasdaq1985-2012.csv', function(err, res){
 			}
 		};
 
-		const area = new VizArtBasic.Area('#chart', options);
+		const area = VizArtBasic.area('#chart', options);
 		d3.csv('./data/nasdaq1985-2012.csv', function(err, res){
 			area.render(res);
 		});
@@ -252,22 +252,22 @@ d3.csv('assets/nasdaq1985-2012.csv', function(err, res){
 		// change color
 		$('#red').click(function(){
 			opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
-			area.transitionColor(opt.color);
+			area.color(opt.color);
 		});
 
 		$('#green').click(function(){
 			opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-			area.transitionColor(opt.color)
+			area.color(opt.color)
 		});
 
 		$('#warm').click(function(){
 			opt.color.scheme = "Warm";
-			area.transitionColor(opt.color)
+			area.color(opt.color)
 		});
 
 		$('#cool').click(function(){
 			opt.color.scheme = "Cool";
-			area.transitionColor(opt.color);
+			area.color(opt.color);
 		});
 
 		$('#x-asc').click(function(){

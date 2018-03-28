@@ -145,7 +145,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { BiPartite } from 'vizart-path';
+import { biPartite } from 'vizart-path';
 import 'vizart-path/dist/vizart-path.css';
 
 const options = {
@@ -178,7 +178,7 @@ const options = {
 };
 
 const _data = ...
-const _chart = new BiPartite('#chart', options);
+const _chart = biPartite('#chart', options);
 _chart.render(_data);
 						</pre>
 					</div>
@@ -225,7 +225,7 @@ _chart.render(_data);
 	$(document).ready(() => {
 		PR.prettyPrint();
 
-		let _chart = new VizArtPath.BiPartite('#chart', {
+		let _chart = VizArtPath.biPartite('#chart', {
 			chart: {
 				margin: {
 					left: 0,
@@ -292,17 +292,17 @@ _chart.render(_data);
 			// change color
 			$('#red').click(function(){
 				_opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
-				_chart.transitionColor(_opt.color);
+				_chart.color(_opt.color);
 			});
 
 			$('#green').click(function(){
 				_opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-				_chart.transitionColor(_opt.color)
+				_chart.color(_opt.color)
 			});
 
 			$('#purple').click(function(){
 				_opt.color.scheme = ['#e7e1ef','#c994c7','#dd1c77'];
-				_chart.transitionColor(_opt.color)
+				_chart.color(_opt.color)
 			});
 
 		});

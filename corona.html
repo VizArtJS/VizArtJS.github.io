@@ -149,7 +149,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { Corona } from 'vizart-basic';
+import { corona } from 'vizart-basic';
 import 'vizart-basic/dist/vizart-basic.css';
 
 const options = {
@@ -204,7 +204,7 @@ const data = [
 	{ appid: 'com.scribd.Temp', downloads: 9, hour: 4 }
 ]
 
-const chart = new Corona('#chart', options);
+const chart = corona('#chart', options);
 chart.render(data);
 						</pre>
 					</div>
@@ -335,7 +335,7 @@ chart.render(data);
 			}
 		};
 
-		let chart = new VizArtBasic.Corona('#chart', options);
+		let chart = VizArtBasic.corona('#chart', options);
 
 		d3.csv('./data/app-downloads.csv', function(err, res){
 			chart.render(res);
@@ -403,13 +403,13 @@ chart.render(data);
 		});
 
 		$('#grouped').click(function () {
-			chart.groupedLayout();
+			chart.group();
 		})
 		$('#stacked').click(function () {
-			chart.stackLayout();
+			chart.stack();
 		});
 		$('#expanded').click(function () {
-			chart.expandLayout();
+			chart.expand();
 		});
 
 	});

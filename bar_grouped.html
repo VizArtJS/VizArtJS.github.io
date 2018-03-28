@@ -149,7 +149,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { StackedBar } from 'vizart-basic';
+import { stackedBar } from 'vizart-basic';
 import 'vizart-basic/dist/vizart-basic.css';
 
 const options = {
@@ -169,7 +169,7 @@ const _data = [
 	{ age: 19, income: 9, dep: 'science' }
 ]
 
-const _chart = new StackedBar('#chart', options);
+const _chart = stackedBar('#chart', options);
 _chart.render(_data);
 						</pre>
 					</div>
@@ -232,7 +232,7 @@ _chart.render(_data);
 		};
 
 		$.getJSON('./data/basic-stacked.json', res=>{
-			let chart = new VizArtBasic.StackedBar('#chart', options);
+			let chart = VizArtBasic.stackedBar('#chart', options);
 			chart.render(res);
 
 			let _opt = chart.options();
@@ -240,17 +240,17 @@ _chart.render(_data);
 			// change color
 			$('#red').click(function () {
 				_opt.color.scheme = ['#ffe100', '#ffbf00', '#ff5730'];
-				chart.transitionColor(_opt.color);
+				chart.color(_opt.color);
 			});
 
 			$('#green').click(function () {
 				_opt.color.scheme = ['#f7fcb9', '#addd8e', '#31a354'];
-				chart.transitionColor(_opt.color)
+				chart.color(_opt.color)
 			});
 
 			$('#accent').click(function () {
 				_opt.color.scheme = "Accent";
-				chart.transitionColor(_opt.color)
+				chart.color(_opt.color)
 			});
 
 			$('#rainbow').click(function () {
@@ -272,25 +272,17 @@ _chart.render(_data);
 					"#FF9800",
 					"#FF5722"
 				];
-				chart.transitionColor(_opt.color);
+				chart.color(_opt.color);
 			});
 
 			$('#grouped').click(function () {
-				_opt.plots.stackLayout = false;
-				chart.options(_opt);
-				chart.update();
+				chart.group();
 			})
 			$('#stacked').click(function () {
-				_opt.plots.stackLayout = true;
-				_opt.plots.stackMethod = 'stacked';
-				chart.options(_opt);
-				chart.update();
+				chart.stack();
 			});
 			$('#expanded').click(function () {
-				_opt.plots.stackLayout = true;
-				_opt.plots.stackMethod = 'expand';
-				chart.options(_opt);
-				chart.update();
+				chart.expand();
 			});
 		});
 

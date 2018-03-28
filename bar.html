@@ -149,7 +149,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { Bar } from 'vizart-basic';
+import { bar } from 'vizart-basic';
 import 'vizart-basic/dist/vizart-basic.css';
 
 const options = {
@@ -164,7 +164,7 @@ const options = {
 	},
 };
 
-const chart = new Bar('#chart', options);
+const chart = bar('#chart', options);
 d3.csv('./data/movies.csv', function(err, res){
    chart.render(res);
 });
@@ -254,7 +254,7 @@ d3.csv('./data/movies.csv', function(err, res){
 			}
 		};
 
-		const chart = new VizArtBasic.Bar('#chart', options);
+		const chart = VizArtBasic.bar('#chart', options);
 
 		d3.csv('./data/movies.csv', function(err, res){
 			const data = _.uniqWith(res, function(a, b) {
@@ -278,22 +278,22 @@ d3.csv('./data/movies.csv', function(err, res){
 				'#ffe100',
 				'#ffbf00',
 				'#ff5730'];
-			chart.transitionColor(opt.color);
+			chart.color(opt.color);
 		});
 
 		$('#green').click(function(){
 			opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-			chart.transitionColor(opt.color)
+			chart.color(opt.color)
 		});
 
 		$('#warm').click(function(){
 			opt.color.scheme = "Warm";
-			chart.transitionColor(opt.color)
+			chart.color(opt.color)
 		});
 
 		$('#cool').click(function(){
 			opt.color.scheme = "Cool";
-			chart.transitionColor(opt.color);
+			chart.color(opt.color);
 		});
 
 		$('#x-asc').click(function(){

@@ -310,7 +310,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { CirclePack } from 'vizart-hierarchy';
+import { circlePack } from 'vizart-hierarchy';
 import 'vizart-hierarchy/dist/vizart-hierarchy.css';
 
 const options = {
@@ -325,7 +325,7 @@ const options = {
 };
 
 
-let chart = new VizArtHierarchy.CirclePack('#chart', options);
+let chart = VizArtHierarchy.circlePack('#chart', options);
 $.getJSON('./data/library.json', function(data){
 	chart.render(data);
 	chart.createLegend('#legendCircles');
@@ -389,7 +389,7 @@ $.getJSON('./data/library.json', function(data){
 		};
 
 
-		let chart = new VizArtHierarchy.CirclePack('#chart', options);
+		let chart = VizArtHierarchy.circlePack('#chart', options);
 		$.getJSON('./data/library.json', function (data) {
 			chart.render(data);
 			chart.createLegend('#legendCircles');

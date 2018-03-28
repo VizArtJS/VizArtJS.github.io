@@ -167,7 +167,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { Scatter } from 'vizart-basic';
+import { scatter } from 'vizart-basic';
 import 'vizart-basic/dist/vizart-basic.css';
 
 const options = {
@@ -187,7 +187,7 @@ const fakeData = [
 	{ age: 19, income: 9, companyYears:5 }
 ]
 
-const _chart = new Scatter('#chart', options);
+const _chart = scatter('#chart', options);
 _chart.render(fakeData);
 						</pre>
 					</div>
@@ -280,7 +280,7 @@ _chart.render(fakeData);
 			}
 		};
 
-		const chart = new VizArtBasic.Scatter('#chart', options);
+		const chart = VizArtBasic.scatter('#chart', options);
 		d3.csv('./data/scatter_expenditure.csv', function(err, res){
 			for (var i = 0; i < res.length; i++) {
 				res[i].exp_amo = +res[i].exp_amo;
@@ -293,22 +293,22 @@ _chart.render(fakeData);
 		// change color
 		$('#red').click(function(){
 			_opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
-			chart.transitionColor(_opt.color);
+			chart.color(_opt.color);
 		});
 
 		$('#green').click(function(){
 			_opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-			chart.transitionColor(_opt.color)
+			chart.color(_opt.color)
 		});
 
 		$('#warm').click(function(){
 			_opt.color.scheme = "Warm";
-			chart.transitionColor(_opt.color)
+			chart.color(_opt.color)
 		});
 
 		$('#cool').click(function(){
 			_opt.color.scheme = "Cool";
-			chart.transitionColor(_opt.color);
+			chart.color(_opt.color);
 		});
 
 		$('#x-asc').click(function(){

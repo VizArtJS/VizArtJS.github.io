@@ -140,7 +140,7 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { StrentchedChord } from 'vizart-path';
+import { strentchedChord } from 'vizart-path';
 import 'vizart-path/dist/vizart-path.css';
 
 const options = {
@@ -159,7 +159,7 @@ const options = {
 };
 
 const _data = ...
-const _chart = new StrentchedChord('#chart', options);
+const _chart = strentchedChord('#chart', options);
 _chart.render(_data);
 						</pre>
 					</div>
@@ -206,7 +206,7 @@ _chart.render(_data);
 	$(document).ready(() => {
 		PR.prettyPrint();
 
-		let chord = new VizArtPath.StrentchedChord('#chart', {
+		let chord = VizArtPath.strentchedChord('#chart', {
 			data: {
 				source: { name: 'Color', accessor: 'color' },
 				target: { name: 'Clarity', accessor: 'clarity' },

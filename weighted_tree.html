@@ -98,6 +98,11 @@
 
 	<section class="page-section">
 		<div class="container relative">
+			<div class="row" style="text-align: center; width: 100%;margin-top:10px">
+				<a id="tree" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Tree</a>
+				<a id="cluster" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Cluster</a>
+			</div>
+
 			<div class="work-full-media mb-80 mb-xs-40">
 				<div id="chart" style="height:500px"></div>
 			</div>
@@ -135,11 +140,11 @@
 
 					<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { WeightedTree } from 'vizart-hierarchy';
+import { weightedTree } from 'vizart-hierarchy';
 import 'vizart-hierarchy/dist/vizart-hierarchy.css';
 
 d3.json("./data/flare.json", (data)=> {
-	let chart = WeightedTree('#chart', {
+	const chart = weightedTree('#chart', {
 		chart: {
 			margin: {
 				top: 40,
@@ -197,7 +202,7 @@ d3.json("./data/flare.json", (data)=> {
 	$(document).ready(() => {
 		PR.prettyPrint();
 
-		let chart = new VizArtHierarchy.WeightedTree('#chart', {
+		const opt = {
 			chart: {
 				margin: {
 					left: 50,
@@ -226,12 +231,32 @@ d3.json("./data/flare.json", (data)=> {
 					"#FF5722"
 				],
 				scaleType: 'categorical'
+			},
+			plots: {
+				mode: 'tree'
 			}
-		});
+		};
+		const chart = VizArtHierarchy.weightedTree('#chart', opt);
 
 		$.getJSON('./data/flare.json', (data)=> {
 			chart.render(data);
+
+			$('#tree').click(function () {
+				$('#chart').empty();
+				opt.plots.mode = 'tree';
+				const chart = VizArtHierarchy.weightedTree('#chart', opt);
+				chart.render(data);
+			});
+
+			$('#cluster').click(function () {
+				$('#chart').empty();
+				opt.plots.mode = 'cluster';
+				const chart = VizArtHierarchy.weightedTree('#chart', opt);
+				chart.render(data);
+			});
 		});
+
+
 	});
 </script>
 

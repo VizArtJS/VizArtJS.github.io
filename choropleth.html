@@ -144,10 +144,10 @@
 
 				<div class="col-md-8 col-sm-8 col-xs-8 mb-sm-50 mb-xs-30">
             <pre class="prettyprint lang-js">
-import { Choropleth } from 'vizart-geo';
+import { choropleth } from 'vizart-geo';
 import 'vizart-geo/dist/vizart-geo.css';
 
-let chart = Choropleth('#chart', {
+const chart = choropleth('#chart', {
 	data: {
 		x: { name: 'states', type: 'string', accessor: 'name'} ,
 		y: [ { name: 'sales', type: 'number', accessor: 'sales'} ],
@@ -229,19 +229,19 @@ d3.json('./data/sales_us.json', function(data){
 
 		d3.json('./data/sales_us.json', function (data) {
 			USData = data;
-			let chart = new VizArtGeo.Choropleth('#chart', USOpt);
+			let chart = VizArtGeo.choropleth('#chart', USOpt);
 			chart.render(USData);
 		});
 
 		$('#usa').click(function () {
 			$('#chart').empty();
-			let chart = new VizArtGeo.Choropleth('#chart', USOpt);
+			let chart = VizArtGeo.choropleth('#chart', USOpt);
 			chart.render(USData);
 		});
 
 		$('#china').click(function () {
 			$.getJSON('./data/geojson/china.geojson', function (geodata) {
-				let chart = new VizArtGeo.Choropleth('#chart', ChinaOpt, geodata);
+				let chart = VizArtGeo.choropleth('#chart', Object.assign(ChinaOpt, {geojson: geodata}));
 
 				d3.csv('./data/sales_flow_cn.csv', function (data) {
 					$('#chart').empty();

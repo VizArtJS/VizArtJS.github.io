@@ -1,3 +1,13 @@
+.vizart-chart path.chord {
+    -webkit-backface-visibility: hidden;
+    fill-opacity: .67;
+    stroke: none;
+}
+
+.vizart-chart text,
+.vizart-chart  .group path {
+    cursor: pointer;
+}
 .parcoords > svg, .parcoords > canvas {
     font: 14px sans-serif;
     position: absolute;
@@ -54,15 +64,4 @@
     -ms-user-select: none;
     user-select: none;
     background-color: white;
-}
-
-.vizart-chart path.chord {
-    -webkit-backface-visibility: hidden;
-    fill-opacity: .67;
-    stroke: none;
-}
-
-.vizart-chart text,
-.vizart-chart  .group path {
-    cursor: pointer;
 }

@@ -5,7 +5,7 @@
   (factory((global.VizArtHierarchy = {})));
 }(this, (function (exports) { 'use strict';
 
-  var version = "0.7.5";
+  var version = "2.0.1";
 
   function colors (specifier) {
     var n = specifier.length / 6 | 0,
@@ -11462,7 +11462,7 @@
           return;
         }
 
-        state._zoomToCanvas(_node);
+        zoomToCanvas(state, _node);
       }
     };
   };

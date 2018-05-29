@@ -5,7 +5,7 @@
   (factory((global.VizArtPath = {})));
 }(this, (function (exports) { 'use strict';
 
-  var version = "2.0.3";
+  var version = "2.0.4";
 
   function colors (specifier) {
     var n = specifier.length / 6 | 0,
@@ -12630,6 +12630,10 @@
     return target;
   };
 
+  var isValid = function isValid(d) {
+    return d !== null && d !== undefined;
+  };
+
   var applyDimensionDefaults = function applyDimensionDefaults(config, pc) {
     return function (dims) {
       var types = pc.detectDimensionTypes(config.data);
@@ -12637,15 +12641,14 @@
 
       return dims.reduce(function (acc, cur, i) {
         var k = config.dimensions[cur] ? config.dimensions[cur] : {};
-
         acc[cur] = _extends$1({}, k, {
-          orient: k.orient ? k.orient : 'left',
-          ticks: k.ticks !== null ? k.ticks : 5,
-          innerTickSize: k.innerTickSize !== null ? k.innerTickSize : 6,
-          outerTickSize: k.outerTickSize !== null ? k.outerTickSize : 0,
-          tickPadding: k.tickPadding !== null ? k.tickPadding : 3,
-          type: k.type ? k.type : types[cur],
-          index: k.index !== null ? k.index : i
+          orient: isValid(k.orient) ? k.orient : 'left',
+          ticks: isValid(k.ticks) ? k.ticks : 5,
+          innerTickSize: isValid(k.innerTickSize) ? k.innerTickSize : 6,
+          outerTickSize: isValid(k.outerTickSize) ? k.outerTickSize : 0,
+          tickPadding: isValid(k.tickPadding) ? k.tickPadding : 3,
+          type: isValid(k.type) ? k.type : types[cur],
+          index: isValid(k.index) ? k.index : i
         });
 
         return acc;
@@ -13286,7 +13289,7 @@
     };
   };
 
-  var version$2 = "2.0.8";
+  var version$2 = "2.0.9";
 
   var DefaultConfig = {
     data: [],

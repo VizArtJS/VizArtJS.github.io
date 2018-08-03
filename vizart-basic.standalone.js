@@ -5,7 +5,7 @@
   (factory((global.VizArtBasic = {})));
 }(this, (function (exports) { 'use strict';
 
-  var version = "2.0.0";
+  var version = "2.0.1";
 
   function colors (specifier) {
     var n = specifier.length / 6 | 0,
@@ -15757,7 +15757,6 @@
 
   var createCartesianOpt = function createCartesianOpt(chartOpt, userOpt) {
     var cartesianOpt = mergeOptions(CartesianOptions, chartOpt, userOpt);
-    console.log(cartesianOpt);
 
     if (!userOpt.hasOwnProperty('ordering')) {
       cartesianOpt.ordering.accessor = cartesianOpt.data.x.accessor;
@@ -18913,14 +18912,14 @@
         } else {
           tooltip.transition().duration(_options.animation.duration.tooltip).style('opacity', 0);
 
-          drawCanvas$5(_frontContext, res, opt);
+          drawCanvas$5(_frontContext, res, _options);
         }
       }
 
       function mouseOutHandler() {
         tooltip.transition().duration(_options.animation.duration.tooltip).style('opacity', 0);
 
-        drawCanvas$5(ctx, res, opt);
+        drawCanvas$5(_frontContext, res, _options);
       }
 
       state._frontCanvas.on('mousemove', mouseMoveHandler);
@@ -19430,7 +19429,7 @@
     };
 
     for (var i = 1; i < axisNum; i++) {
-      drawCircularText(context, getAxisLabel(opt, axes[toText(i)], toText(i)) + '', 14, 'Oswald', opt.plots.axisLabelColor, opt.chart.innerWidth / 2, opt.chart.innerHeight / 2, outerRadius + opt.plots.axisLabelOffset, axisScale(i), 5);
+      drawCircularText(context, getAxisLabel(opt, axes[toText(i)], toText(i)) + '', 14, 'Oswald', opt.plots.axisLabelColor, opt.chart.width / 2, opt.chart.height / 2, outerRadius + opt.plots.axisLabelOffset, axisScale(i), 5);
     }
   };
 
@@ -19580,6 +19579,7 @@
     drawGridArc(context, opt);
     drawGridLabel(context, state, opt);
     drawAxisLabel(context, opt);
+
     // drawMonths(context, opt);
     // drawHistogram(context, state, opt);
     // drawChord(context, state, opt);
@@ -21723,6 +21723,29 @@
   exports.processStackedData = processStackedData;
   exports.createCartesianOpt = createCartesianOpt;
   exports.createCartesianStackedOpt = createCartesianStackedOpt;
+  exports.cartesian = cartesian;
+  exports.polar = polar;
+  exports.stacked = stacked;
+  exports.polarStacked = polarStacked;
+  exports.stackedComposer = stackedComposer;
+  exports.standardComposer = standardComposer;
+  exports.getMetric = getMetric;
+  exports.getMetricVal = getMetricVal;
+  exports.getDimension = getDimension;
+  exports.getDimensionVal = getDimensionVal;
+  exports.x = x$2;
+  exports.y = y$2;
+  exports.c = c$1;
+  exports.getSeries = getSeries;
+  exports.s = s$1;
+  exports.y0 = y0;
+  exports.y1 = y1;
+  exports.apiGroup = apiGroup;
+  exports.apiStack = apiStack;
+  exports.apiExpand = apiExpand;
+  exports.apiWiggle = apiWiggle;
+  exports.apiSilhouette = apiSilhouette;
+  exports.apiDivergent = apiDivergent;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

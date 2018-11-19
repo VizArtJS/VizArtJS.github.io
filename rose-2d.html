@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Rose</title>
+	<title>Rose 2D</title>
 	<meta name="description" content="VizArt Row">
 	<meta name="keywords" content="VizArt Row">
 	<meta charset="utf-8">
@@ -100,6 +100,7 @@
 		<div class="container relative">
 
 			<div class="row" style="text-align: center; width: 100%;margin-top:10px">
+				<a id="default" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Light</a>
 				<a id="red" href="#" class="btn btn-mod  btn-gray btn-round mb-10 mr-5">Red Yellow Blue</a>
 				<a id="green" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">Red Yellow Green</a>
 				<a id="warm" href="#" class="btn btn-mod btn-gray btn-round mb-10 mr-5">BrBG</a>
@@ -155,7 +156,7 @@ const options = {
 
 	data: {
 			x: { name: 'Director', type: 'string', accessor: 'Director'},
-			y: [{ name: 'Total', type: 'number', accessor: 'Total', yAxis: 0}],
+			y: [{ name: 'Total', type: 'number', accessor: 'Total', yAxis: 0}], // only 1 metric
 	},
 };
 
@@ -216,14 +217,15 @@ d3.csv('./data/movies.csv', function(err, res){
 			},
 			color: {
 				type: 'categorical',
-				scheme: ['#000000', '#fc0d1b', '#64b3fc']
+				scheme: [
+					'#37A2DA', '#32C5E9', '#67E0E3', '#9FE6B8', '#FFDB5C', '#ff9f7f',
+					'#fb7293', '#E062AE', '#E690D1', '#e7bcf3', '#9d96f5', '#8378EA', '#96BFFF'
+				]
 			},
 			data: {
 				x:   { name: 'Director', type: 'string', accessor: 'dimension'},
 				y: [
 					{ name: 'Total', type: 'number', accessor: 'metric'},
-					{ name: 'm2', type: 'number', accessor: 'm2'},
-					{ name: 'm3', type: 'number', accessor: 'm3'}
 				],
 			},
 			plots: {
@@ -286,6 +288,14 @@ d3.csv('./data/movies.csv', function(err, res){
 
 		$('#cool').click(function(){
 			opt.color.scheme = "PiYG";
+			chart.color(opt.color);
+		});
+
+		$('#default').click(function(){
+			opt.color.scheme = [
+				'#37A2DA', '#32C5E9', '#67E0E3', '#9FE6B8', '#FFDB5C', '#ff9f7f',
+				'#fb7293', '#E062AE', '#E690D1', '#e7bcf3', '#9d96f5', '#8378EA', '#96BFFF'
+			];
 			chart.color(opt.color);
 		});
 	});

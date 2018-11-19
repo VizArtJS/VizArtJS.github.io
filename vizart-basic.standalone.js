@@ -5,7 +5,7 @@
   (factory((global.VizArtBasic = {})));
 }(this, (function (exports) { 'use strict';
 
-  var version = "2.0.1";
+  var version = "2.0.2";
 
   function colors (specifier) {
     var n = specifier.length / 6 | 0,
@@ -217,6 +217,9 @@
     displayable: function displayable() {
       return this.rgb().displayable();
     },
+    hex: function hex() {
+      return this.rgb().hex();
+    },
     toString: function toString() {
       return this.rgb() + "";
     }
@@ -225,7 +228,8 @@
   function color(format) {
     var m;
     format = (format + "").trim().toLowerCase();
-    return (m = reHex3.exec(format)) ? (m = parseInt(m[1], 16), new Rgb(m >> 8 & 0xf | m >> 4 & 0x0f0, m >> 4 & 0xf | m & 0xf0, (m & 0xf) << 4 | m & 0xf, 1)) : (m = reHex6.exec(format)) ? rgbn(parseInt(m[1], 16)) // #ff0000
+    return (m = reHex3.exec(format)) ? (m = parseInt(m[1], 16), new Rgb(m >> 8 & 0xf | m >> 4 & 0x0f0, m >> 4 & 0xf | m & 0xf0, (m & 0xf) << 4 | m & 0xf, 1) // #f00
+    ) : (m = reHex6.exec(format)) ? rgbn(parseInt(m[1], 16)) // #ff0000
     : (m = reRgbInteger.exec(format)) ? new Rgb(m[1], m[2], m[3], 1) // rgb(255, 0, 0)
     : (m = reRgbPercent.exec(format)) ? new Rgb(m[1] * 255 / 100, m[2] * 255 / 100, m[3] * 255 / 100, 1) // rgb(100%, 0%, 0%)
     : (m = reRgbaInteger.exec(format)) ? rgba(m[1], m[2], m[3], m[4]) // rgba(255, 0, 0, 1)
@@ -277,11 +281,19 @@
     displayable: function displayable() {
       return 0 <= this.r && this.r <= 255 && 0 <= this.g && this.g <= 255 && 0 <= this.b && this.b <= 255 && 0 <= this.opacity && this.opacity <= 1;
     },
+    hex: function hex() {
+      return "#" + _hex(this.r) + _hex(this.g) + _hex(this.b);
+    },
     toString: function toString() {
       var a = this.opacity;a = isNaN(a) ? 1 : Math.max(0, Math.min(1, a));
       return (a === 1 ? "rgb(" : "rgba(") + Math.max(0, Math.min(255, Math.round(this.r) || 0)) + ", " + Math.max(0, Math.min(255, Math.round(this.g) || 0)) + ", " + Math.max(0, Math.min(255, Math.round(this.b) || 0)) + (a === 1 ? ")" : ", " + a + ")");
     }
   }));
+
+  function _hex(value) {
+    value = Math.max(0, Math.min(255, Math.round(value) || 0));
+    return (value < 16 ? "0" : "") + value.toString(16);
+  }
 
   function hsla(h, s, l, a) {
     if (a <= 0) h = s = l = NaN;else if (l <= 0 || l >= 1) h = s = NaN;else if (s <= 0) h = NaN;
@@ -353,11 +365,11 @@
   var deg2rad = Math.PI / 180;
   var rad2deg = 180 / Math.PI;
 
-  var Kn = 18,
-      Xn = 0.950470,
-      // D65 standard referent
-  Yn = 1,
-      Zn = 1.088830,
+  // https://beta.observablehq.com/@mbostock/lab-and-rgb
+  var K = 18,
+      Xn = 0.96422,
+      Yn = 1,
+      Zn = 0.82521,
       t0 = 4 / 29,
       t1 = 6 / 29,
       t2 = 3 * t1 * t1,
@@ -366,16 +378,21 @@
   function labConvert(o) {
     if (o instanceof Lab) return new Lab(o.l, o.a, o.b, o.opacity);
     if (o instanceof Hcl) {
+      if (isNaN(o.h)) return new Lab(o.l, 0, 0, o.opacity);
       var h = o.h * deg2rad;
       return new Lab(o.l, Math.cos(h) * o.c, Math.sin(h) * o.c, o.opacity);
     }
     if (!(o instanceof Rgb)) o = rgbConvert(o);
-    var b = rgb2xyz(o.r),
-        a = rgb2xyz(o.g),
-        l = rgb2xyz(o.b),
-        x = xyz2lab((0.4124564 * b + 0.3575761 * a + 0.1804375 * l) / Xn),
-        y = xyz2lab((0.2126729 * b + 0.7151522 * a + 0.0721750 * l) / Yn),
-        z = xyz2lab((0.0193339 * b + 0.1191920 * a + 0.9503041 * l) / Zn);
+    var r = rgb2lrgb(o.r),
+        g = rgb2lrgb(o.g),
+        b = rgb2lrgb(o.b),
+        y = xyz2lab((0.2225045 * r + 0.7168786 * g + 0.0606169 * b) / Yn),
+        x,
+        z;
+    if (r === g && g === b) x = z = y;else {
+      x = xyz2lab((0.4360747 * r + 0.3850649 * g + 0.1430804 * b) / Xn);
+      z = xyz2lab((0.0139322 * r + 0.0971045 * g + 0.7141733 * b) / Zn);
+    }
     return new Lab(116 * y - 16, 500 * (x - y), 200 * (y - z), o.opacity);
   }
 
@@ -392,20 +409,19 @@
 
   define(Lab, lab, extend(Color, {
     brighter: function brighter(k) {
-      return new Lab(this.l + Kn * (k == null ? 1 : k), this.a, this.b, this.opacity);
+      return new Lab(this.l + K * (k == null ? 1 : k), this.a, this.b, this.opacity);
     },
     darker: function darker(k) {
-      return new Lab(this.l - Kn * (k == null ? 1 : k), this.a, this.b, this.opacity);
+      return new Lab(this.l - K * (k == null ? 1 : k), this.a, this.b, this.opacity);
     },
     rgb: function rgb$$1() {
       var y = (this.l + 16) / 116,
           x = isNaN(this.a) ? y : y + this.a / 500,
           z = isNaN(this.b) ? y : y - this.b / 200;
-      y = Yn * lab2xyz(y);
       x = Xn * lab2xyz(x);
+      y = Yn * lab2xyz(y);
       z = Zn * lab2xyz(z);
-      return new Rgb(xyz2rgb(3.2404542 * x - 1.5371385 * y - 0.4985314 * z), // D65 -> sRGB
-      xyz2rgb(-0.9692660 * x + 1.8760108 * y + 0.0415560 * z), xyz2rgb(0.0556434 * x - 0.2040259 * y + 1.0572252 * z), this.opacity);
+      return new Rgb(lrgb2rgb(3.1338561 * x - 1.6168667 * y - 0.4906146 * z), lrgb2rgb(-0.9787684 * x + 1.9161415 * y + 0.0334540 * z), lrgb2rgb(0.0719453 * x - 0.2289914 * y + 1.4052427 * z), this.opacity);
     }
   }));
 
@@ -417,17 +433,18 @@
     return t > t1 ? t * t * t : t2 * (t - t0);
   }
 
-  function xyz2rgb(x) {
+  function lrgb2rgb(x) {
     return 255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055);
   }
 
-  function rgb2xyz(x) {
+  function rgb2lrgb(x) {
     return (x /= 255) <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
   }
 
   function hclConvert(o) {
     if (o instanceof Hcl) return new Hcl(o.h, o.c, o.l, o.opacity);
     if (!(o instanceof Lab)) o = labConvert(o);
+    if (o.a === 0 && o.b === 0) return new Hcl(NaN, 0, o.l, o.opacity);
     var h = Math.atan2(o.b, o.a) * rad2deg;
     return new Hcl(h < 0 ? h + 360 : h, Math.sqrt(o.a * o.a + o.b * o.b), o.l, o.opacity);
   }
@@ -445,10 +462,10 @@
 
   define(Hcl, hcl, extend(Color, {
     brighter: function brighter(k) {
-      return new Hcl(this.h, this.c, this.l + Kn * (k == null ? 1 : k), this.opacity);
+      return new Hcl(this.h, this.c, this.l + K * (k == null ? 1 : k), this.opacity);
     },
     darker: function darker(k) {
-      return new Hcl(this.h, this.c, this.l - Kn * (k == null ? 1 : k), this.opacity);
+      return new Hcl(this.h, this.c, this.l - K * (k == null ? 1 : k), this.opacity);
     },
     rgb: function rgb$$1() {
       return labConvert(this).rgb();
@@ -612,7 +629,7 @@
 
   var rgbBasis = rgbSpline(basis$1);
 
-  function interpolateArray (a, b) {
+  function array (a, b) {
     var nb = b ? b.length : 0,
         na = a ? Math.min(nb, a.length) : 0,
         x = new Array(na),
@@ -792,7 +809,7 @@
   function interpolate (a, b) {
       var t = typeof b === "undefined" ? "undefined" : _typeof(b),
           c;
-      return b == null || t === "boolean" ? constant(b) : (t === "number" ? interpolateNumber : t === "string" ? (c = color(b)) ? (b = c, interpolateRgb) : interpolateString : b instanceof color ? interpolateRgb : b instanceof Date ? date : Array.isArray(b) ? interpolateArray : typeof b.valueOf !== "function" && typeof b.toString !== "function" || isNaN(b) ? object : interpolateNumber)(a, b);
+      return b == null || t === "boolean" ? constant(b) : (t === "number" ? interpolateNumber : t === "string" ? (c = color(b)) ? (b = c, interpolateRgb) : interpolateString : b instanceof color ? interpolateRgb : b instanceof Date ? date : Array.isArray(b) ? array : typeof b.valueOf !== "function" && typeof b.toString !== "function" || isNaN(b) ? object : interpolateNumber)(a, b);
   }
 
   function interpolateRound (a, b) {
@@ -987,73 +1004,73 @@
 
   var interpolateBuGn = ramp(scheme$9);
 
-  var scheme$10 = new Array(3).concat("e0ecf49ebcda8856a7", "edf8fbb3cde38c96c688419d", "edf8fbb3cde38c96c68856a7810f7c", "edf8fbbfd3e69ebcda8c96c68856a7810f7c", "edf8fbbfd3e69ebcda8c96c68c6bb188419d6e016b", "f7fcfde0ecf4bfd3e69ebcda8c96c68c6bb188419d6e016b", "f7fcfde0ecf4bfd3e69ebcda8c96c68c6bb188419d810f7c4d004b").map(colors);
+  var scheme$a = new Array(3).concat("e0ecf49ebcda8856a7", "edf8fbb3cde38c96c688419d", "edf8fbb3cde38c96c68856a7810f7c", "edf8fbbfd3e69ebcda8c96c68856a7810f7c", "edf8fbbfd3e69ebcda8c96c68c6bb188419d6e016b", "f7fcfde0ecf4bfd3e69ebcda8c96c68c6bb188419d6e016b", "f7fcfde0ecf4bfd3e69ebcda8c96c68c6bb188419d810f7c4d004b").map(colors);
 
-  var interpolateBuPu = ramp(scheme$10);
+  var interpolateBuPu = ramp(scheme$a);
 
-  var scheme$11 = new Array(3).concat("e0f3dba8ddb543a2ca", "f0f9e8bae4bc7bccc42b8cbe", "f0f9e8bae4bc7bccc443a2ca0868ac", "f0f9e8ccebc5a8ddb57bccc443a2ca0868ac", "f0f9e8ccebc5a8ddb57bccc44eb3d32b8cbe08589e", "f7fcf0e0f3dbccebc5a8ddb57bccc44eb3d32b8cbe08589e", "f7fcf0e0f3dbccebc5a8ddb57bccc44eb3d32b8cbe0868ac084081").map(colors);
+  var scheme$b = new Array(3).concat("e0f3dba8ddb543a2ca", "f0f9e8bae4bc7bccc42b8cbe", "f0f9e8bae4bc7bccc443a2ca0868ac", "f0f9e8ccebc5a8ddb57bccc443a2ca0868ac", "f0f9e8ccebc5a8ddb57bccc44eb3d32b8cbe08589e", "f7fcf0e0f3dbccebc5a8ddb57bccc44eb3d32b8cbe08589e", "f7fcf0e0f3dbccebc5a8ddb57bccc44eb3d32b8cbe0868ac084081").map(colors);
 
-  var interpolateGnBu = ramp(scheme$11);
+  var interpolateGnBu = ramp(scheme$b);
 
-  var scheme$12 = new Array(3).concat("fee8c8fdbb84e34a33", "fef0d9fdcc8afc8d59d7301f", "fef0d9fdcc8afc8d59e34a33b30000", "fef0d9fdd49efdbb84fc8d59e34a33b30000", "fef0d9fdd49efdbb84fc8d59ef6548d7301f990000", "fff7ecfee8c8fdd49efdbb84fc8d59ef6548d7301f990000", "fff7ecfee8c8fdd49efdbb84fc8d59ef6548d7301fb300007f0000").map(colors);
+  var scheme$c = new Array(3).concat("fee8c8fdbb84e34a33", "fef0d9fdcc8afc8d59d7301f", "fef0d9fdcc8afc8d59e34a33b30000", "fef0d9fdd49efdbb84fc8d59e34a33b30000", "fef0d9fdd49efdbb84fc8d59ef6548d7301f990000", "fff7ecfee8c8fdd49efdbb84fc8d59ef6548d7301f990000", "fff7ecfee8c8fdd49efdbb84fc8d59ef6548d7301fb300007f0000").map(colors);
 
-  var interpolateOrRd = ramp(scheme$12);
+  var interpolateOrRd = ramp(scheme$c);
 
-  var scheme$13 = new Array(3).concat("ece2f0a6bddb1c9099", "f6eff7bdc9e167a9cf02818a", "f6eff7bdc9e167a9cf1c9099016c59", "f6eff7d0d1e6a6bddb67a9cf1c9099016c59", "f6eff7d0d1e6a6bddb67a9cf3690c002818a016450", "fff7fbece2f0d0d1e6a6bddb67a9cf3690c002818a016450", "fff7fbece2f0d0d1e6a6bddb67a9cf3690c002818a016c59014636").map(colors);
+  var scheme$d = new Array(3).concat("ece2f0a6bddb1c9099", "f6eff7bdc9e167a9cf02818a", "f6eff7bdc9e167a9cf1c9099016c59", "f6eff7d0d1e6a6bddb67a9cf1c9099016c59", "f6eff7d0d1e6a6bddb67a9cf3690c002818a016450", "fff7fbece2f0d0d1e6a6bddb67a9cf3690c002818a016450", "fff7fbece2f0d0d1e6a6bddb67a9cf3690c002818a016c59014636").map(colors);
 
-  var interpolatePuBuGn = ramp(scheme$13);
+  var interpolatePuBuGn = ramp(scheme$d);
 
-  var scheme$14 = new Array(3).concat("ece7f2a6bddb2b8cbe", "f1eef6bdc9e174a9cf0570b0", "f1eef6bdc9e174a9cf2b8cbe045a8d", "f1eef6d0d1e6a6bddb74a9cf2b8cbe045a8d", "f1eef6d0d1e6a6bddb74a9cf3690c00570b0034e7b", "fff7fbece7f2d0d1e6a6bddb74a9cf3690c00570b0034e7b", "fff7fbece7f2d0d1e6a6bddb74a9cf3690c00570b0045a8d023858").map(colors);
+  var scheme$e = new Array(3).concat("ece7f2a6bddb2b8cbe", "f1eef6bdc9e174a9cf0570b0", "f1eef6bdc9e174a9cf2b8cbe045a8d", "f1eef6d0d1e6a6bddb74a9cf2b8cbe045a8d", "f1eef6d0d1e6a6bddb74a9cf3690c00570b0034e7b", "fff7fbece7f2d0d1e6a6bddb74a9cf3690c00570b0034e7b", "fff7fbece7f2d0d1e6a6bddb74a9cf3690c00570b0045a8d023858").map(colors);
 
-  var interpolatePuBu = ramp(scheme$14);
+  var interpolatePuBu = ramp(scheme$e);
 
-  var scheme$15 = new Array(3).concat("e7e1efc994c7dd1c77", "f1eef6d7b5d8df65b0ce1256", "f1eef6d7b5d8df65b0dd1c77980043", "f1eef6d4b9dac994c7df65b0dd1c77980043", "f1eef6d4b9dac994c7df65b0e7298ace125691003f", "f7f4f9e7e1efd4b9dac994c7df65b0e7298ace125691003f", "f7f4f9e7e1efd4b9dac994c7df65b0e7298ace125698004367001f").map(colors);
+  var scheme$f = new Array(3).concat("e7e1efc994c7dd1c77", "f1eef6d7b5d8df65b0ce1256", "f1eef6d7b5d8df65b0dd1c77980043", "f1eef6d4b9dac994c7df65b0dd1c77980043", "f1eef6d4b9dac994c7df65b0e7298ace125691003f", "f7f4f9e7e1efd4b9dac994c7df65b0e7298ace125691003f", "f7f4f9e7e1efd4b9dac994c7df65b0e7298ace125698004367001f").map(colors);
 
-  var interpolatePuRd = ramp(scheme$15);
+  var interpolatePuRd = ramp(scheme$f);
 
-  var scheme$16 = new Array(3).concat("fde0ddfa9fb5c51b8a", "feebe2fbb4b9f768a1ae017e", "feebe2fbb4b9f768a1c51b8a7a0177", "feebe2fcc5c0fa9fb5f768a1c51b8a7a0177", "feebe2fcc5c0fa9fb5f768a1dd3497ae017e7a0177", "fff7f3fde0ddfcc5c0fa9fb5f768a1dd3497ae017e7a0177", "fff7f3fde0ddfcc5c0fa9fb5f768a1dd3497ae017e7a017749006a").map(colors);
+  var scheme$g = new Array(3).concat("fde0ddfa9fb5c51b8a", "feebe2fbb4b9f768a1ae017e", "feebe2fbb4b9f768a1c51b8a7a0177", "feebe2fcc5c0fa9fb5f768a1c51b8a7a0177", "feebe2fcc5c0fa9fb5f768a1dd3497ae017e7a0177", "fff7f3fde0ddfcc5c0fa9fb5f768a1dd3497ae017e7a0177", "fff7f3fde0ddfcc5c0fa9fb5f768a1dd3497ae017e7a017749006a").map(colors);
 
-  var interpolateRdPu = ramp(scheme$16);
+  var interpolateRdPu = ramp(scheme$g);
 
-  var scheme$17 = new Array(3).concat("edf8b17fcdbb2c7fb8", "ffffcca1dab441b6c4225ea8", "ffffcca1dab441b6c42c7fb8253494", "ffffccc7e9b47fcdbb41b6c42c7fb8253494", "ffffccc7e9b47fcdbb41b6c41d91c0225ea80c2c84", "ffffd9edf8b1c7e9b47fcdbb41b6c41d91c0225ea80c2c84", "ffffd9edf8b1c7e9b47fcdbb41b6c41d91c0225ea8253494081d58").map(colors);
+  var scheme$h = new Array(3).concat("edf8b17fcdbb2c7fb8", "ffffcca1dab441b6c4225ea8", "ffffcca1dab441b6c42c7fb8253494", "ffffccc7e9b47fcdbb41b6c42c7fb8253494", "ffffccc7e9b47fcdbb41b6c41d91c0225ea80c2c84", "ffffd9edf8b1c7e9b47fcdbb41b6c41d91c0225ea80c2c84", "ffffd9edf8b1c7e9b47fcdbb41b6c41d91c0225ea8253494081d58").map(colors);
 
-  var interpolateYlGnBu = ramp(scheme$17);
+  var interpolateYlGnBu = ramp(scheme$h);
 
-  var scheme$18 = new Array(3).concat("f7fcb9addd8e31a354", "ffffccc2e69978c679238443", "ffffccc2e69978c67931a354006837", "ffffccd9f0a3addd8e78c67931a354006837", "ffffccd9f0a3addd8e78c67941ab5d238443005a32", "ffffe5f7fcb9d9f0a3addd8e78c67941ab5d238443005a32", "ffffe5f7fcb9d9f0a3addd8e78c67941ab5d238443006837004529").map(colors);
+  var scheme$i = new Array(3).concat("f7fcb9addd8e31a354", "ffffccc2e69978c679238443", "ffffccc2e69978c67931a354006837", "ffffccd9f0a3addd8e78c67931a354006837", "ffffccd9f0a3addd8e78c67941ab5d238443005a32", "ffffe5f7fcb9d9f0a3addd8e78c67941ab5d238443005a32", "ffffe5f7fcb9d9f0a3addd8e78c67941ab5d238443006837004529").map(colors);
 
-  var interpolateYlGn = ramp(scheme$18);
+  var interpolateYlGn = ramp(scheme$i);
 
-  var scheme$19 = new Array(3).concat("fff7bcfec44fd95f0e", "ffffd4fed98efe9929cc4c02", "ffffd4fed98efe9929d95f0e993404", "ffffd4fee391fec44ffe9929d95f0e993404", "ffffd4fee391fec44ffe9929ec7014cc4c028c2d04", "ffffe5fff7bcfee391fec44ffe9929ec7014cc4c028c2d04", "ffffe5fff7bcfee391fec44ffe9929ec7014cc4c02993404662506").map(colors);
+  var scheme$j = new Array(3).concat("fff7bcfec44fd95f0e", "ffffd4fed98efe9929cc4c02", "ffffd4fed98efe9929d95f0e993404", "ffffd4fee391fec44ffe9929d95f0e993404", "ffffd4fee391fec44ffe9929ec7014cc4c028c2d04", "ffffe5fff7bcfee391fec44ffe9929ec7014cc4c028c2d04", "ffffe5fff7bcfee391fec44ffe9929ec7014cc4c02993404662506").map(colors);
 
-  var interpolateYlOrBr = ramp(scheme$19);
+  var interpolateYlOrBr = ramp(scheme$j);
 
-  var scheme$20 = new Array(3).concat("ffeda0feb24cf03b20", "ffffb2fecc5cfd8d3ce31a1c", "ffffb2fecc5cfd8d3cf03b20bd0026", "ffffb2fed976feb24cfd8d3cf03b20bd0026", "ffffb2fed976feb24cfd8d3cfc4e2ae31a1cb10026", "ffffccffeda0fed976feb24cfd8d3cfc4e2ae31a1cb10026", "ffffccffeda0fed976feb24cfd8d3cfc4e2ae31a1cbd0026800026").map(colors);
+  var scheme$k = new Array(3).concat("ffeda0feb24cf03b20", "ffffb2fecc5cfd8d3ce31a1c", "ffffb2fecc5cfd8d3cf03b20bd0026", "ffffb2fed976feb24cfd8d3cf03b20bd0026", "ffffb2fed976feb24cfd8d3cfc4e2ae31a1cb10026", "ffffccffeda0fed976feb24cfd8d3cfc4e2ae31a1cb10026", "ffffccffeda0fed976feb24cfd8d3cfc4e2ae31a1cbd0026800026").map(colors);
 
-  var interpolateYlOrRd = ramp(scheme$20);
+  var interpolateYlOrRd = ramp(scheme$k);
 
-  var scheme$21 = new Array(3).concat("deebf79ecae13182bd", "eff3ffbdd7e76baed62171b5", "eff3ffbdd7e76baed63182bd08519c", "eff3ffc6dbef9ecae16baed63182bd08519c", "eff3ffc6dbef9ecae16baed64292c62171b5084594", "f7fbffdeebf7c6dbef9ecae16baed64292c62171b5084594", "f7fbffdeebf7c6dbef9ecae16baed64292c62171b508519c08306b").map(colors);
+  var scheme$l = new Array(3).concat("deebf79ecae13182bd", "eff3ffbdd7e76baed62171b5", "eff3ffbdd7e76baed63182bd08519c", "eff3ffc6dbef9ecae16baed63182bd08519c", "eff3ffc6dbef9ecae16baed64292c62171b5084594", "f7fbffdeebf7c6dbef9ecae16baed64292c62171b5084594", "f7fbffdeebf7c6dbef9ecae16baed64292c62171b508519c08306b").map(colors);
 
-  var interpolateBlues = ramp(scheme$21);
+  var interpolateBlues = ramp(scheme$l);
 
-  var scheme$22 = new Array(3).concat("e5f5e0a1d99b31a354", "edf8e9bae4b374c476238b45", "edf8e9bae4b374c47631a354006d2c", "edf8e9c7e9c0a1d99b74c47631a354006d2c", "edf8e9c7e9c0a1d99b74c47641ab5d238b45005a32", "f7fcf5e5f5e0c7e9c0a1d99b74c47641ab5d238b45005a32", "f7fcf5e5f5e0c7e9c0a1d99b74c47641ab5d238b45006d2c00441b").map(colors);
+  var scheme$m = new Array(3).concat("e5f5e0a1d99b31a354", "edf8e9bae4b374c476238b45", "edf8e9bae4b374c47631a354006d2c", "edf8e9c7e9c0a1d99b74c47631a354006d2c", "edf8e9c7e9c0a1d99b74c47641ab5d238b45005a32", "f7fcf5e5f5e0c7e9c0a1d99b74c47641ab5d238b45005a32", "f7fcf5e5f5e0c7e9c0a1d99b74c47641ab5d238b45006d2c00441b").map(colors);
 
-  var interpolateGreens = ramp(scheme$22);
+  var interpolateGreens = ramp(scheme$m);
 
-  var scheme$23 = new Array(3).concat("f0f0f0bdbdbd636363", "f7f7f7cccccc969696525252", "f7f7f7cccccc969696636363252525", "f7f7f7d9d9d9bdbdbd969696636363252525", "f7f7f7d9d9d9bdbdbd969696737373525252252525", "fffffff0f0f0d9d9d9bdbdbd969696737373525252252525", "fffffff0f0f0d9d9d9bdbdbd969696737373525252252525000000").map(colors);
+  var scheme$n = new Array(3).concat("f0f0f0bdbdbd636363", "f7f7f7cccccc969696525252", "f7f7f7cccccc969696636363252525", "f7f7f7d9d9d9bdbdbd969696636363252525", "f7f7f7d9d9d9bdbdbd969696737373525252252525", "fffffff0f0f0d9d9d9bdbdbd969696737373525252252525", "fffffff0f0f0d9d9d9bdbdbd969696737373525252252525000000").map(colors);
 
-  var interpolateGreys = ramp(scheme$23);
+  var interpolateGreys = ramp(scheme$n);
 
-  var scheme$24 = new Array(3).concat("efedf5bcbddc756bb1", "f2f0f7cbc9e29e9ac86a51a3", "f2f0f7cbc9e29e9ac8756bb154278f", "f2f0f7dadaebbcbddc9e9ac8756bb154278f", "f2f0f7dadaebbcbddc9e9ac8807dba6a51a34a1486", "fcfbfdefedf5dadaebbcbddc9e9ac8807dba6a51a34a1486", "fcfbfdefedf5dadaebbcbddc9e9ac8807dba6a51a354278f3f007d").map(colors);
+  var scheme$o = new Array(3).concat("efedf5bcbddc756bb1", "f2f0f7cbc9e29e9ac86a51a3", "f2f0f7cbc9e29e9ac8756bb154278f", "f2f0f7dadaebbcbddc9e9ac8756bb154278f", "f2f0f7dadaebbcbddc9e9ac8807dba6a51a34a1486", "fcfbfdefedf5dadaebbcbddc9e9ac8807dba6a51a34a1486", "fcfbfdefedf5dadaebbcbddc9e9ac8807dba6a51a354278f3f007d").map(colors);
 
-  var interpolatePurples = ramp(scheme$24);
+  var interpolatePurples = ramp(scheme$o);
 
-  var scheme$25 = new Array(3).concat("fee0d2fc9272de2d26", "fee5d9fcae91fb6a4acb181d", "fee5d9fcae91fb6a4ade2d26a50f15", "fee5d9fcbba1fc9272fb6a4ade2d26a50f15", "fee5d9fcbba1fc9272fb6a4aef3b2ccb181d99000d", "fff5f0fee0d2fcbba1fc9272fb6a4aef3b2ccb181d99000d", "fff5f0fee0d2fcbba1fc9272fb6a4aef3b2ccb181da50f1567000d").map(colors);
+  var scheme$p = new Array(3).concat("fee0d2fc9272de2d26", "fee5d9fcae91fb6a4acb181d", "fee5d9fcae91fb6a4ade2d26a50f15", "fee5d9fcbba1fc9272fb6a4ade2d26a50f15", "fee5d9fcbba1fc9272fb6a4aef3b2ccb181d99000d", "fff5f0fee0d2fcbba1fc9272fb6a4aef3b2ccb181d99000d", "fff5f0fee0d2fcbba1fc9272fb6a4aef3b2ccb181da50f1567000d").map(colors);
 
-  var interpolateReds = ramp(scheme$25);
+  var interpolateReds = ramp(scheme$p);
 
-  var scheme$26 = new Array(3).concat("fee6cefdae6be6550d", "feeddefdbe85fd8d3cd94701", "feeddefdbe85fd8d3ce6550da63603", "feeddefdd0a2fdae6bfd8d3ce6550da63603", "feeddefdd0a2fdae6bfd8d3cf16913d948018c2d04", "fff5ebfee6cefdd0a2fdae6bfd8d3cf16913d948018c2d04", "fff5ebfee6cefdd0a2fdae6bfd8d3cf16913d94801a636037f2704").map(colors);
+  var scheme$q = new Array(3).concat("fee6cefdae6be6550d", "feeddefdbe85fd8d3cd94701", "feeddefdbe85fd8d3ce6550da63603", "feeddefdd0a2fdae6bfd8d3ce6550da63603", "feeddefdd0a2fdae6bfd8d3cf16913d948018c2d04", "fff5ebfee6cefdd0a2fdae6bfd8d3cf16913d948018c2d04", "fff5ebfee6cefdd0a2fdae6bfd8d3cf16913d94801a636037f2704").map(colors);
 
-  var interpolateOranges = ramp(scheme$26);
+  var interpolateOranges = ramp(scheme$q);
 
   var interpolateCubehelixDefault = cubehelixLong(cubehelix(300, 0.5, 0.0), cubehelix(-240, 0.5, 1.0));
 
@@ -1234,7 +1251,7 @@
       return stop < start ? -step1 : step1;
   }
 
-  function threshold (values, p, valueof) {
+  function quantile (values, p, valueof) {
     if (valueof == null) valueof = number;
     if (!(n = values.length)) return;
     if ((p = +p) <= 0 || n < 2) return +valueof(values[0], 0, values);
@@ -1470,10 +1487,10 @@
     return set;
   }
 
-  var array$1 = Array.prototype;
+  var array$2 = Array.prototype;
 
-  var map$2 = array$1.map;
-  var slice$1 = array$1.slice;
+  var map$2 = array$2.map;
+  var slice$1 = array$2.slice;
 
   var implicit = { name: "implicit" };
 
@@ -1697,22 +1714,22 @@
         range$$1 = unit,
         interpolate$$1 = interpolate,
         clamp = false,
-        piecewise,
+        piecewise$$1,
         output,
         input;
 
     function rescale() {
-      piecewise = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
+      piecewise$$1 = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
       output = input = null;
       return scale;
     }
 
     function scale(x) {
-      return (output || (output = piecewise(domain, range$$1, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
+      return (output || (output = piecewise$$1(domain, range$$1, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
     }
 
     scale.invert = function (y) {
-      return (input || (input = piecewise(range$$1, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
+      return (input || (input = piecewise$$1(range$$1, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
     };
 
     scale.domain = function (_) {
@@ -1782,23 +1799,49 @@
     };
   }
 
-  function formatDefault (x, p) {
-    x = x.toPrecision(p);
+  // [[fill]align][sign][symbol][0][width][,][.precision][~][type]
+  var re = /^(?:(.)?([<>=^]))?([+\-\( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?(~)?([a-z%])?$/i;
 
-    out: for (var n = x.length, i = 1, i0 = -1, i1; i < n; ++i) {
-      switch (x[i]) {
+  function formatSpecifier(specifier) {
+    return new FormatSpecifier(specifier);
+  }
+
+  formatSpecifier.prototype = FormatSpecifier.prototype; // instanceof
+
+  function FormatSpecifier(specifier) {
+    if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier);
+    var match;
+    this.fill = match[1] || " ";
+    this.align = match[2] || ">";
+    this.sign = match[3] || "-";
+    this.symbol = match[4] || "";
+    this.zero = !!match[5];
+    this.width = match[6] && +match[6];
+    this.comma = !!match[7];
+    this.precision = match[8] && +match[8].slice(1);
+    this.trim = !!match[9];
+    this.type = match[10] || "";
+  }
+
+  FormatSpecifier.prototype.toString = function () {
+    return this.fill + this.align + this.sign + this.symbol + (this.zero ? "0" : "") + (this.width == null ? "" : Math.max(1, this.width | 0)) + (this.comma ? "," : "") + (this.precision == null ? "" : "." + Math.max(0, this.precision | 0)) + (this.trim ? "~" : "") + this.type;
+  };
+
+  // Trims insignificant zeros, e.g., replaces 1.2000k with 1.2k.
+  function formatTrim (s) {
+    out: for (var n = s.length, i = 1, i0 = -1, i1; i < n; ++i) {
+      switch (s[i]) {
         case ".":
           i0 = i1 = i;break;
         case "0":
           if (i0 === 0) i0 = i;i1 = i;break;
-        case "e":
-          break out;
         default:
-          if (i0 > 0) i0 = 0;break;
+          if (i0 > 0) {
+            if (!+s[i]) break out;i0 = 0;
+          }break;
       }
     }
-
-    return i0 > 0 ? x.slice(0, i0) + x.slice(i1 + 1) : x;
+    return i0 > 0 ? s.slice(0, i0) + s.slice(i1 + 1) : s;
   }
 
   var prefixExponent;
@@ -1822,7 +1865,6 @@
   }
 
   var formatTypes = {
-    "": formatDefault,
     "%": function _(x, p) {
       return (x * 100).toFixed(p);
     },
@@ -1860,53 +1902,6 @@
     }
   };
 
-  // [[fill]align][sign][symbol][0][width][,][.precision][type]
-  var re = /^(?:(.)?([<>=^]))?([+\-\( ])?([$#])?(0)?(\d+)?(,)?(\.\d+)?([a-z%])?$/i;
-
-  function formatSpecifier(specifier) {
-    return new FormatSpecifier(specifier);
-  }
-
-  formatSpecifier.prototype = FormatSpecifier.prototype; // instanceof
-
-  function FormatSpecifier(specifier) {
-    if (!(match = re.exec(specifier))) throw new Error("invalid format: " + specifier);
-
-    var match,
-        fill = match[1] || " ",
-        align = match[2] || ">",
-        sign = match[3] || "-",
-        symbol = match[4] || "",
-        zero = !!match[5],
-        width = match[6] && +match[6],
-        comma = !!match[7],
-        precision = match[8] && +match[8].slice(1),
-        type = match[9] || "";
-
-    // The "n" type is an alias for ",g".
-    if (type === "n") comma = true, type = "g";
-
-    // Map invalid types to the default format.
-    else if (!formatTypes[type]) type = "";
-
-    // If zero fill is specified, padding goes after sign and before digits.
-    if (zero || fill === "0" && align === "=") zero = true, fill = "0", align = "=";
-
-    this.fill = fill;
-    this.align = align;
-    this.sign = sign;
-    this.symbol = symbol;
-    this.zero = zero;
-    this.width = width;
-    this.comma = comma;
-    this.precision = precision;
-    this.type = type;
-  }
-
-  FormatSpecifier.prototype.toString = function () {
-    return this.fill + this.align + this.sign + this.symbol + (this.zero ? "0" : "") + (this.width == null ? "" : Math.max(1, this.width | 0)) + (this.comma ? "," : "") + (this.precision == null ? "" : "." + Math.max(0, this.precision | 0)) + this.type;
-  };
-
   function identity$2 (x) {
     return x;
   }
@@ -1931,7 +1926,17 @@
           width = specifier.width,
           comma = specifier.comma,
           precision = specifier.precision,
+          trim = specifier.trim,
           type = specifier.type;
+
+      // The "n" type is an alias for ",g".
+      if (type === "n") comma = true, type = "g";
+
+      // The "" type, and any invalid type, is an alias for ".12~g".
+      else if (!formatTypes[type]) precision == null && (precision = 12), trim = true, type = "g";
+
+      // If zero fill is specified, padding goes after sign and before digits.
+      if (zero || fill === "0" && align === "=") zero = true, fill = "0", align = "=";
 
       // Compute the prefix and suffix.
       // For SI-prefix, the suffix is lazily computed.
@@ -1942,13 +1947,13 @@
       // Is this an integer type?
       // Can this type generate exponential notation?
       var formatType = formatTypes[type],
-          maybeSuffix = !type || /[defgprs%]/.test(type);
+          maybeSuffix = /[defgprs%]/.test(type);
 
       // Set the default precision if not specified,
       // or clamp the specified precision to the supported range.
       // For significant precision, it must be in [1, 21].
       // For fixed precision, it must be in [0, 20].
-      precision = precision == null ? type ? 6 : 12 : /[gprs]/.test(type) ? Math.max(1, Math.min(21, precision)) : Math.max(0, Math.min(20, precision));
+      precision = precision == null ? 6 : /[gprs]/.test(type) ? Math.max(1, Math.min(21, precision)) : Math.max(0, Math.min(20, precision));
 
       function format(value) {
         var valuePrefix = prefix,
@@ -1966,6 +1971,9 @@
           // Perform the initial formatting.
           var valueNegative = value < 0;
           value = formatType(Math.abs(value), precision);
+
+          // Trim insignificant zeros.
+          if (trim) value = formatTrim(value);
 
           // If a negative value rounds to zero during formatting, treat as positive.
           if (valueNegative && +value === 0) valueNegative = false;
@@ -2183,7 +2191,7 @@
     return domain;
   }
 
-  function quantile$$1() {
+  function quantile$1() {
     var domain = [],
         range$$1 = [],
         thresholds = [];
@@ -2193,7 +2201,7 @@
           n = Math.max(1, range$$1.length);
       thresholds = new Array(n - 1);
       while (++i < n) {
-        thresholds[i - 1] = threshold(domain, i / n);
+        thresholds[i - 1] = quantile(domain, i / n);
       }return scale;
     }
 
@@ -2224,7 +2232,7 @@
     };
 
     scale.copy = function () {
-      return quantile$$1().domain(domain).range(range$$1);
+      return quantile$1().domain(domain).range(range$$1);
     };
 
     return scale;
@@ -2324,6 +2332,7 @@
       return (end - start) / k;
     });
   };
+  var milliseconds = millisecond.range;
 
   var durationSecond = 1e3;
   var durationMinute = 6e4;
@@ -2340,6 +2349,7 @@
   }, function (date) {
     return date.getUTCSeconds();
   });
+  var seconds = second.range;
 
   var minute = newInterval(function (date) {
     date.setTime(Math.floor(date / durationMinute) * durationMinute);
@@ -2350,6 +2360,7 @@
   }, function (date) {
     return date.getMinutes();
   });
+  var minutes = minute.range;
 
   var hour = newInterval(function (date) {
     var offset = date.getTimezoneOffset() * durationMinute % durationHour;
@@ -2362,6 +2373,7 @@
   }, function (date) {
     return date.getHours();
   });
+  var hours = hour.range;
 
   var day = newInterval(function (date) {
     date.setHours(0, 0, 0, 0);
@@ -2372,6 +2384,7 @@
   }, function (date) {
     return date.getDate() - 1;
   });
+  var days = day.range;
 
   function weekday(i) {
     return newInterval(function (date) {
@@ -2392,6 +2405,10 @@
   var friday = weekday(5);
   var saturday = weekday(6);
 
+  var sundays = sunday.range;
+  var mondays = monday.range;
+  var thursdays = thursday.range;
+
   var month = newInterval(function (date) {
     date.setDate(1);
     date.setHours(0, 0, 0, 0);
@@ -2402,6 +2419,7 @@
   }, function (date) {
     return date.getMonth();
   });
+  var months = month.range;
 
   var year = newInterval(function (date) {
     date.setMonth(0, 1);
@@ -2424,6 +2442,7 @@
       date.setFullYear(date.getFullYear() + step * k);
     });
   };
+  var years = year.range;
 
   var utcMinute = newInterval(function (date) {
     date.setUTCSeconds(0, 0);
@@ -2434,6 +2453,7 @@
   }, function (date) {
     return date.getUTCMinutes();
   });
+  var utcMinutes = utcMinute.range;
 
   var utcHour = newInterval(function (date) {
     date.setUTCMinutes(0, 0, 0);
@@ -2444,6 +2464,7 @@
   }, function (date) {
     return date.getUTCHours();
   });
+  var utcHours = utcHour.range;
 
   var utcDay = newInterval(function (date) {
     date.setUTCHours(0, 0, 0, 0);
@@ -2454,6 +2475,7 @@
   }, function (date) {
     return date.getUTCDate() - 1;
   });
+  var utcDays = utcDay.range;
 
   function utcWeekday(i) {
     return newInterval(function (date) {
@@ -2474,6 +2496,10 @@
   var utcFriday = utcWeekday(5);
   var utcSaturday = utcWeekday(6);
 
+  var utcSundays = utcSunday.range;
+  var utcMondays = utcMonday.range;
+  var utcThursdays = utcThursday.range;
+
   var utcMonth = newInterval(function (date) {
     date.setUTCDate(1);
     date.setUTCHours(0, 0, 0, 0);
@@ -2484,6 +2510,7 @@
   }, function (date) {
     return date.getUTCMonth();
   });
+  var utcMonths = utcMonth.range;
 
   var utcYear = newInterval(function (date) {
     date.setUTCMonth(0, 1);
@@ -2506,6 +2533,7 @@
       date.setUTCFullYear(date.getUTCFullYear() + step * k);
     });
   };
+  var utcYears = utcYear.range;
 
   function localDate(d) {
     if (0 <= d.y && d.y < 100) {
@@ -3292,15 +3320,16 @@
   function sequential(interpolator) {
     var x0 = 0,
         x1 = 1,
+        k10 = 1,
         clamp = false;
 
     function scale(x) {
-      var t = (x - x0) / (x1 - x0);
+      var t = (x - x0) * k10;
       return interpolator(clamp ? Math.max(0, Math.min(1, t)) : t);
     }
 
     scale.domain = function (_) {
-      return arguments.length ? (x0 = +_[0], x1 = +_[1], scale) : [x0, x1];
+      return arguments.length ? (x0 = +_[0], x1 = +_[1], k10 = x0 === x1 ? 0 : 1 / (x1 - x0), scale) : [x0, x1];
     };
 
     scale.clamp = function (_) {
@@ -5779,11 +5808,10 @@
 
     try {
       value[symToStringTag] = undefined;
-      var unmasked = true;
     } catch (e) {}
 
     var result = nativeObjectToString.call(value);
-    if (unmasked) {
+    {
       if (isOwn) {
         value[symToStringTag] = tag;
       } else {
@@ -6559,9 +6587,7 @@
 
     var theDarkest = _scheme[schemeLen - 1];
 
-    if (schemeLen === 0) {
-      // nothing to do
-    } else if (dataLen === 1) {
+    if (schemeLen === 0) ; else if (dataLen === 1) {
       // use the darkest
       _scale = ordinal().domain(_data[0]).range([theDarkest]);
     } else if (dataLen === schemeLen) {
@@ -6649,7 +6675,7 @@
       _scheme = scheme$$1;
     }
 
-    var _scale = quantile$$1().domain(_distinction);
+    var _scale = quantile$1().domain(_distinction);
 
     if (isString(_scheme)) {
       var _interpolated = interpolateSequentialScheme(_scheme);
@@ -9520,13 +9546,13 @@
           line = tick.select("line"),
           text = tick.select("text");
 
-      path = path.merge(path.enter().insert("path", ".tick").attr("class", "domain").attr("stroke", "#000"));
+      path = path.merge(path.enter().insert("path", ".tick").attr("class", "domain").attr("stroke", "currentColor"));
 
       tick = tick.merge(tickEnter);
 
-      line = line.merge(tickEnter.append("line").attr("stroke", "#000").attr(x + "2", k * tickSizeInner));
+      line = line.merge(tickEnter.append("line").attr("stroke", "currentColor").attr(x + "2", k * tickSizeInner));
 
-      text = text.merge(tickEnter.append("text").attr("fill", "#000").attr(x, k * spacing).attr("dy", orient === top ? "0em" : orient === bottom ? "0.71em" : "0.32em"));
+      text = text.merge(tickEnter.append("text").attr("fill", "currentColor").attr(x, k * spacing).attr("dy", orient === top ? "0em" : orient === bottom ? "0.71em" : "0.32em"));
 
       if (context !== selection) {
         path = path.transition(context);
@@ -9622,17 +9648,17 @@
   var _Symbol$1 = root$2.Symbol;
 
   /** Used for built-in method references. */
-  var objectProto$11 = Object.prototype;
+  var objectProto$a = Object.prototype;
 
   /** Used to check objects for own properties. */
-  var hasOwnProperty$9 = objectProto$11.hasOwnProperty;
+  var hasOwnProperty$9 = objectProto$a.hasOwnProperty;
 
   /**
    * Used to resolve the
    * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
    * of values.
    */
-  var nativeObjectToString$2 = objectProto$11.toString;
+  var nativeObjectToString$2 = objectProto$a.toString;
 
   /** Built-in value references. */
   var symToStringTag$2 = _Symbol$1 ? _Symbol$1.toStringTag : undefined;
@@ -9650,11 +9676,10 @@
 
     try {
       value[symToStringTag$2] = undefined;
-      var unmasked = true;
     } catch (e) {}
 
     var result = nativeObjectToString$2.call(value);
-    if (unmasked) {
+    {
       if (isOwn) {
         value[symToStringTag$2] = tag;
       } else {
@@ -9665,14 +9690,14 @@
   }
 
   /** Used for built-in method references. */
-  var objectProto$12 = Object.prototype;
+  var objectProto$b = Object.prototype;
 
   /**
    * Used to resolve the
    * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
    * of values.
    */
-  var nativeObjectToString$3 = objectProto$12.toString;
+  var nativeObjectToString$3 = objectProto$b.toString;
 
   /**
    * Converts `value` to a string using `Object.prototype.toString`.
@@ -10792,7 +10817,7 @@
       maxTicks = ticks;
     }
 
-    if (max - min == 0 || min == 0 && max == 1) {
+    if (max - min == 0 || max == 1) {
       return [min, 1, maxTicks == 0 ? 5 : Math.min(maxTicks, 5)];
     } else if (maxTicks == 1) {
       return [min, max, 1];
@@ -11198,7 +11223,7 @@
       }
 
       // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
-      else if (!(l01_2 > epsilon$2)) {}
+      else if (!(l01_2 > epsilon$2)) ;
 
         // Or, are (x0,y0), (x1,y1) and (x2,y2) collinear?
         // Equivalently, is (x1,y1) coincident with (x2,y2)?
@@ -13082,16 +13107,16 @@
 
   /** Used for built-in method references. */
   var funcProto$4 = Function.prototype,
-      objectProto$13 = Object.prototype;
+      objectProto$c = Object.prototype;
 
   /** Used to resolve the decompiled source of functions. */
   var funcToString$4 = funcProto$4.toString;
 
   /** Used to check objects for own properties. */
-  var hasOwnProperty$10 = objectProto$13.hasOwnProperty;
+  var hasOwnProperty$a = objectProto$c.hasOwnProperty;
 
   /** Used to detect if a method is native. */
-  var reIsNative$1 = RegExp('^' + funcToString$4.call(hasOwnProperty$10).replace(reRegExpChar$1, '\\$&').replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$');
+  var reIsNative$1 = RegExp('^' + funcToString$4.call(hasOwnProperty$a).replace(reRegExpChar$1, '\\$&').replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$');
 
   /**
    * The base implementation of `_.isNative` without bad shim checks.
@@ -13256,13 +13281,13 @@
   }
 
   /** Used for built-in method references. */
-  var objectProto$14 = Object.prototype;
+  var objectProto$d = Object.prototype;
 
   /** Used to check objects for own properties. */
-  var hasOwnProperty$11 = objectProto$14.hasOwnProperty;
+  var hasOwnProperty$b = objectProto$d.hasOwnProperty;
 
   /** Built-in value references. */
-  var propertyIsEnumerable$1 = objectProto$14.propertyIsEnumerable;
+  var propertyIsEnumerable$1 = objectProto$d.propertyIsEnumerable;
 
   /**
    * Checks if `value` is likely an `arguments` object.
@@ -13285,7 +13310,7 @@
   var isArguments$1 = baseIsArguments$1(function () {
     return arguments;
   }()) ? baseIsArguments$1 : function (value) {
-    return isObjectLike$1(value) && hasOwnProperty$11.call(value, 'callee') && !propertyIsEnumerable$1.call(value, 'callee');
+    return isObjectLike$1(value) && hasOwnProperty$b.call(value, 'callee') && !propertyIsEnumerable$1.call(value, 'callee');
   };
 
   /**
@@ -13459,10 +13484,10 @@
   var isTypedArray$1 = nodeIsTypedArray$1 ? baseUnary$1(nodeIsTypedArray$1) : baseIsTypedArray$1;
 
   /** Used for built-in method references. */
-  var objectProto$15 = Object.prototype;
+  var objectProto$e = Object.prototype;
 
   /** Used to check objects for own properties. */
-  var hasOwnProperty$12 = objectProto$15.hasOwnProperty;
+  var hasOwnProperty$c = objectProto$e.hasOwnProperty;
 
   /**
    * Creates an array of the enumerable property names of the array-like `value`.
@@ -13482,7 +13507,7 @@
         length = result.length;
 
     for (var key in value) {
-      if ((inherited || hasOwnProperty$12.call(value, key)) && !(skipIndexes && (
+      if ((inherited || hasOwnProperty$c.call(value, key)) && !(skipIndexes && (
       // Safari 9 has enumerable `arguments.length` in strict mode.
       key == 'length' ||
       // Node.js 0.10 has enumerable non-index properties on buffers.
@@ -13498,7 +13523,7 @@
   }
 
   /** Used for built-in method references. */
-  var objectProto$16 = Object.prototype;
+  var objectProto$f = Object.prototype;
 
   /**
    * Checks if `value` is likely a prototype object.
@@ -13509,7 +13534,7 @@
    */
   function isPrototype$1(value) {
     var Ctor = value && value.constructor,
-        proto = typeof Ctor == 'function' && Ctor.prototype || objectProto$16;
+        proto = typeof Ctor == 'function' && Ctor.prototype || objectProto$f;
 
     return value === proto;
   }
@@ -13532,10 +13557,10 @@
   var nativeKeys = overArg$1(Object.keys, Object);
 
   /** Used for built-in method references. */
-  var objectProto$17 = Object.prototype;
+  var objectProto$g = Object.prototype;
 
   /** Used to check objects for own properties. */
-  var hasOwnProperty$13 = objectProto$17.hasOwnProperty;
+  var hasOwnProperty$d = objectProto$g.hasOwnProperty;
 
   /**
    * The base implementation of `_.keys` which doesn't treat sparse arrays as dense.
@@ -13550,7 +13575,7 @@
     }
     var result = [];
     for (var key in Object(object)) {
-      if (hasOwnProperty$13.call(object, key) && key != 'constructor') {
+      if (hasOwnProperty$d.call(object, key) && key != 'constructor') {
         result.push(key);
       }
     }
@@ -13955,10 +13980,10 @@
   var HASH_UNDEFINED$2 = '__lodash_hash_undefined__';
 
   /** Used for built-in method references. */
-  var objectProto$18 = Object.prototype;
+  var objectProto$h = Object.prototype;
 
   /** Used to check objects for own properties. */
-  var hasOwnProperty$14 = objectProto$18.hasOwnProperty;
+  var hasOwnProperty$e = objectProto$h.hasOwnProperty;
 
   /**
    * Gets the hash value for `key`.
@@ -13975,14 +14000,14 @@
       var result = data[key];
       return result === HASH_UNDEFINED$2 ? undefined : result;
     }
-    return hasOwnProperty$14.call(data, key) ? data[key] : undefined;
+    return hasOwnProperty$e.call(data, key) ? data[key] : undefined;
   }
 
   /** Used for built-in method references. */
-  var objectProto$19 = Object.prototype;
+  var objectProto$i = Object.prototype;
 
   /** Used to check objects for own properties. */
-  var hasOwnProperty$15 = objectProto$19.hasOwnProperty;
+  var hasOwnProperty$f = objectProto$i.hasOwnProperty;
 
   /**
    * Checks if a hash value for `key` exists.
@@ -13995,7 +14020,7 @@
    */
   function hashHas$1(key) {
     var data = this.__data__;
-    return nativeCreate$1 ? data[key] !== undefined : hasOwnProperty$15.call(data, key);
+    return nativeCreate$1 ? data[key] !== undefined : hasOwnProperty$f.call(data, key);
   }
 
   /** Used to stand-in for `undefined` hash values. */
@@ -14597,10 +14622,10 @@
   }
 
   /** Used for built-in method references. */
-  var objectProto$20 = Object.prototype;
+  var objectProto$j = Object.prototype;
 
   /** Built-in value references. */
-  var propertyIsEnumerable$2 = objectProto$20.propertyIsEnumerable;
+  var propertyIsEnumerable$2 = objectProto$j.propertyIsEnumerable;
 
   /* Built-in method references for those with the same name as other `lodash` methods. */
   var nativeGetSymbols = Object.getOwnPropertySymbols;
@@ -14637,10 +14662,10 @@
   var COMPARE_PARTIAL_FLAG$2 = 1;
 
   /** Used for built-in method references. */
-  var objectProto$21 = Object.prototype;
+  var objectProto$k = Object.prototype;
 
   /** Used to check objects for own properties. */
-  var hasOwnProperty$16 = objectProto$21.hasOwnProperty;
+  var hasOwnProperty$g = objectProto$k.hasOwnProperty;
 
   /**
    * A specialized version of `baseIsEqualDeep` for objects with support for
@@ -14668,7 +14693,7 @@
     var index = objLength;
     while (index--) {
       var key = objProps[index];
-      if (!(isPartial ? key in other : hasOwnProperty$16.call(other, key))) {
+      if (!(isPartial ? key in other : hasOwnProperty$g.call(other, key))) {
         return false;
       }
     }
@@ -14784,10 +14809,10 @@
       objectTag$4 = '[object Object]';
 
   /** Used for built-in method references. */
-  var objectProto$22 = Object.prototype;
+  var objectProto$l = Object.prototype;
 
   /** Used to check objects for own properties. */
-  var hasOwnProperty$17 = objectProto$22.hasOwnProperty;
+  var hasOwnProperty$h = objectProto$l.hasOwnProperty;
 
   /**
    * A specialized version of `baseIsEqual` for arrays and objects which performs
@@ -14828,8 +14853,8 @@
       return objIsArr || isTypedArray$1(object) ? equalArrays(object, other, bitmask, customizer, equalFunc, stack) : equalByTag(object, other, objTag, bitmask, customizer, equalFunc, stack);
     }
     if (!(bitmask & COMPARE_PARTIAL_FLAG$3)) {
-      var objIsWrapped = objIsObj && hasOwnProperty$17.call(object, '__wrapped__'),
-          othIsWrapped = othIsObj && hasOwnProperty$17.call(other, '__wrapped__');
+      var objIsWrapped = objIsObj && hasOwnProperty$h.call(object, '__wrapped__'),
+          othIsWrapped = othIsObj && hasOwnProperty$h.call(other, '__wrapped__');
 
       if (objIsWrapped || othIsWrapped) {
         var objUnwrapped = objIsWrapped ? object.value() : object,
@@ -15418,10 +15443,10 @@
   }
 
   /** Used for built-in method references. */
-  var objectProto$23 = Object.prototype;
+  var objectProto$m = Object.prototype;
 
   /** Used to check objects for own properties. */
-  var hasOwnProperty$18 = objectProto$23.hasOwnProperty;
+  var hasOwnProperty$i = objectProto$m.hasOwnProperty;
 
   /**
    * Creates an object composed of keys generated from the results of running
@@ -15447,7 +15472,7 @@
    * // => { '3': ['one', 'two'], '5': ['three'] }
    */
   var groupBy = createAggregator(function (result, value, key) {
-    if (hasOwnProperty$18.call(result, key)) {
+    if (hasOwnProperty$i.call(result, key)) {
       result[key].push(value);
     } else {
       baseAssignValue$1(result, key, [value]);
@@ -17316,7 +17341,7 @@
       });
     } else {
       return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+        var interpolateParticles = array(initialState, finalState);
 
         var batchRendering = timer(function (elapsed) {
           var t = Math.min(1, cubicInOut(elapsed / duration));
@@ -17748,7 +17773,7 @@
       });
     } else {
       return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+        var interpolateParticles = array(initialState, finalState);
 
         var batchRendering = timer(function (elapsed) {
           var t = Math.min(1, cubicInOut(elapsed / duration));
@@ -17944,7 +17969,7 @@
       });
     } else {
       return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+        var interpolateParticles = array(initialState, finalState);
 
         var batchRendering = timer(function (elapsed) {
           var t = Math.min(1, cubicInOut(elapsed / duration));
@@ -18232,7 +18257,7 @@
       });
     } else {
       return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+        var interpolateParticles = array(initialState, finalState);
 
         var batchRendering = timer(function (elapsed) {
           var t = Math.min(1, cubicInOut(elapsed / duration));
@@ -18535,7 +18560,7 @@
       });
     } else {
       return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+        var interpolateParticles = array(initialState, finalState);
 
         var batchRendering = timer(function (elapsed) {
           var t = Math.min(1, cubicInOut(elapsed / duration));
@@ -18770,7 +18795,7 @@
       });
     } else {
       return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+        var interpolateParticles = array(initialState, finalState);
 
         var batchRendering = timer(function (elapsed) {
           var t = Math.min(1, cubicInOut(elapsed / duration));
@@ -19074,7 +19099,7 @@
       });
     } else {
       return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+        var interpolateParticles = array(initialState, finalState);
 
         var batchRendering = timer(function (elapsed) {
           var t = Math.min(1, cubicInOut(elapsed / duration));
@@ -19602,7 +19627,7 @@
       });
     } else {
       return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+        var interpolateParticles = array(initialState, finalState);
 
         var batchRendering = timer(function (elapsed) {
           var t = Math.min(1, cubicInOut(elapsed / duration));
@@ -19922,9 +19947,11 @@
       return d.startAngle;
     }).endAngle(function (d) {
       return d.endAngle;
-    }).innerRadius(0).outerRadius(function (d) {
+    }).innerRadius(function (d) {
+      return d.r0;
+    }).outerRadius(function (d) {
       return d.r;
-    }).padAngle(0.04).context(context);
+    }).padAngle(opt.padAngle).context(context);
 
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
@@ -20001,7 +20028,7 @@
       });
     } else {
       return new Promise(function (resolve, reject) {
-        var interpolateParticles = interpolateArray(initialState, finalState);
+        var interpolateParticles = array(initialState, finalState);
 
         var batchRendering = timer(function (elapsed) {
           var t = Math.min(1, cubicInOut(elapsed / duration));
@@ -20064,9 +20091,11 @@
       return d.startAngle;
     }).endAngle(function (d) {
       return d.endAngle;
-    }).innerRadius(0).outerRadius(function (d) {
+    }).innerRadius(function (d) {
+      return d.r0;
+    }).outerRadius(function (d) {
       return d.r;
-    }).padAngle(0.04).context(context);
+    }).padAngle(opt.padAngle).context(context);
 
     var i = 0;
 
@@ -20586,12 +20615,13 @@
     var c = function c(d) {
       return colorScale(d);
     };
+    var innerRadius = getRadius$1(_options)[0];
     var outerRadius = getRadius$1(_options)[1];
     var radiusOfArea = function radiusOfArea(area$$1) {
       return Math.sqrt(area$$1 * 3 / Math.PI);
     };
 
-    var radiusScale = linear$1().domain([0, radiusOfArea(_data.maxY)]).range([0, outerRadius]);
+    var radiusScale = linear$1().domain([0, radiusOfArea(_data.maxY)]).range([innerRadius, outerRadius]);
 
     var r = function r(d) {
       return radiusScale(radiusOfArea(d));
@@ -20610,6 +20640,7 @@
           alpha: _options.plots.opacity,
           startAngle: angleScale(i),
           endAngle: angleScale(i + 1),
+          r0: innerRadius,
           r: r(e.values[i]._y),
           data: e.values[i]
         };
@@ -20679,7 +20710,9 @@
         return d.startAngle;
       }).endAngle(function (d) {
         return d.endAngle;
-      }).innerRadius(0).outerRadius(function (d) {
+      }).innerRadius(function (d) {
+        return d.r0;
+      }).outerRadius(function (d) {
         return d.r;
       }).padAngle(0.04);
 
@@ -20719,8 +20752,10 @@
     },
 
     plots: {
+      innerRadiusRatio: 0.4,
       opacity: 0.5,
       outerRadiusMargin: 10,
+      padAngle: 0,
       axisLabel: null,
       axisLabelAlign: true,
       axisLabelAlignThreshold: 0.5,
@@ -21040,7 +21075,7 @@
     }
   }
 
-  function constant$10 (x) {
+  function constant$a (x) {
     return function () {
       return x;
     };
@@ -21541,11 +21576,11 @@
     }
 
     brush.extent = function (_) {
-      return arguments.length ? (extent = typeof _ === "function" ? _ : constant$10([[+_[0][0], +_[0][1]], [+_[1][0], +_[1][1]]]), brush) : extent;
+      return arguments.length ? (extent = typeof _ === "function" ? _ : constant$a([[+_[0][0], +_[0][1]], [+_[1][0], +_[1][1]]]), brush) : extent;
     };
 
     brush.filter = function (_) {
-      return arguments.length ? (filter = typeof _ === "function" ? _ : constant$10(!!_), brush) : filter;
+      return arguments.length ? (filter = typeof _ === "function" ? _ : constant$a(!!_), brush) : filter;
     };
 
     brush.handleSize = function (_) {
@@ -21661,7 +21696,7 @@
     };
   };
 
-  var animate$10 = function animate(state) {
+  var animate$a = function animate(state) {
     forceMetricDesc(state);
 
     var _options = state._options,
@@ -21702,7 +21737,7 @@
     }
   };
 
-  var row = cartesian(DefaultOpt, animate$10);
+  var row = cartesian(DefaultOpt, animate$a);
 
   exports.version = version;
   exports.bar = bar;

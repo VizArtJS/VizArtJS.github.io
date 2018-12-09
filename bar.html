@@ -269,31 +269,22 @@ d3.csv('./data/movies.csv', function(err, res){
 			chart.render(data);
 		});
 
-		const opt = chart.options();
-
-
 		// change color
 		$('#red').click(function(){
-			opt.color.scheme = [
-				'#ffe100',
-				'#ffbf00',
-				'#ff5730'];
-			chart.color(opt.color);
+			chart.color({scheme: ['#ffeda0','#feb24c','#f03b20']});
 		});
 
 		$('#green').click(function(){
-			opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-			chart.color(opt.color)
+			chart.color({scheme: ['#f7fcb9','#addd8e','#31a354']});
+
 		});
 
 		$('#warm').click(function(){
-			opt.color.scheme = "Warm";
-			chart.color(opt.color)
+			chart.color({scheme: 'Warm'});
 		});
 
 		$('#cool').click(function(){
-			opt.color.scheme = "Cool";
-			chart.color(opt.color);
+			chart.color({scheme: 'Cold'});
 		});
 
 		$('#x-asc').click(function(){

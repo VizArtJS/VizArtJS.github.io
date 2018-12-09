@@ -6,7 +6,7 @@
   (factory((global.VizArtHierarchy = {})));
 }(this, (function (exports) { 'use strict';
 
-  var version = "2.0.2";
+  var version = "2.0.3";
 
   function ascending (a, b) {
     return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -9482,13 +9482,28 @@
   var apiColor$1 = function apiColor(state) {
     return {
       color: function color(colorOpt) {
+        if (!colorOpt) {
+          console.warn('color opt is null, either scheme or type is required');
+          return;
+        } else if (!colorOpt.type && !colorOpt.scheme) {
+          console.warn('invalid color opt, either scheme or type is required');
+          return;
+        }
+
+        if (colorOpt.type) {
+          state._options.color.type = colorOpt.type;
+        }
+
+        if (colorOpt.scheme) {
+          state._options.color.scheme = colorOpt.scheme;
+        }
+
         var _options = state._options,
             _composers = state._composers,
             _svg = state._svg,
             _color = state._color;
 
-        _options.color = colorOpt;
-        state._color = _composers.color(colorOpt);
+        state._color = _composers.color(state._options.color);
 
         _svg.selectAll('.icicle-slice').transition().duration(_options.animation.duration.update).attr('fill', function (d) {
           return _color(d.name);
@@ -10605,8 +10620,23 @@
   var apiColor$2 = function apiColor(state) {
     return {
       color: function color(colorOptions) {
-        state._options.color = colorOptions;
-        state._color = state._composers.color(colorOptions);
+        if (!colorOptions) {
+          console.warn('color opt is null, either scheme or type is required');
+          return;
+        } else if (!colorOptions.type && !colorOptions.scheme) {
+          console.warn('invalid color opt, either scheme or type is required');
+          return;
+        }
+
+        if (colorOptions.type) {
+          state._options.color.type = colorOptions.type;
+        }
+
+        if (colorOptions.scheme) {
+          state._options.color.scheme = colorOptions.scheme;
+        }
+
+        state._color = state._composers.color(state._options.color);
 
         var _options = state._options,
             _svg = state._svg,
@@ -11320,11 +11350,25 @@
   var apiColor$3 = function apiColor(state) {
     return {
       color: function color(colorOptions) {
-        var _options = state._options,
-            _svg = state._svg;
+        if (!colorOptions) {
+          console.warn('color opt is null, either scheme or type is required');
+          return;
+        } else if (!colorOptions.type && !colorOptions.scheme) {
+          console.warn('invalid color opt, either scheme or type is required');
+          return;
+        }
 
-        _options.color = colorOptions;
-        state._color = state.composers.color(colorOptions);
+        if (colorOptions.type) {
+          state._options.color.type = colorOptions.type;
+        }
+
+        if (colorOptions.scheme) {
+          state._options.color.scheme = colorOptions.scheme;
+        }
+
+        var _svg = state._svg;
+
+        state._color = state.composers.color(state._options.color);
 
         _svg.selectAll('.node path').transition().duration(1250).attr('fill', function (d) {
           return state._color(d.data.name);

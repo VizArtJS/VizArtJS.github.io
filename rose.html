@@ -265,29 +265,23 @@ d3.csv('./data/movies.csv', function(err, res){
 
 		chart.render(data);
 
-		const opt = chart.options();
-
-
 		// change color
 		$('#red').click(function(){
-			opt.color.scheme = 'RdYlBu';
-			chart.color(opt.color);
+			chart.color({scheme: ['#ffeda0','#feb24c','#f03b20']});
 		});
 
 		$('#green').click(function(){
-			opt.color.scheme = 'RdYlGn';
-			chart.color(opt.color)
+			chart.color({scheme: ['#f7fcb9','#addd8e','#31a354']});
 		});
 
 		$('#warm').click(function(){
-			opt.color.scheme = "BrBG";
-			chart.color(opt.color)
+			chart.color({scheme: 'Warm'});
 		});
 
 		$('#cool').click(function(){
-			opt.color.scheme = "PiYG";
-			chart.color(opt.color);
+			chart.color({scheme: 'Cold'});
 		});
+
 	});
 </script>
 

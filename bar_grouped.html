@@ -239,40 +239,37 @@ _chart.render(_data);
 
 			// change color
 			$('#red').click(function () {
-				_opt.color.scheme = ['#ffe100', '#ffbf00', '#ff5730'];
-				chart.color(_opt.color);
+				chart.color({scheme: ['#ffe100', '#ffbf00', '#ff5730']});
 			});
 
 			$('#green').click(function () {
-				_opt.color.scheme = ['#f7fcb9', '#addd8e', '#31a354'];
-				chart.color(_opt.color)
+				chart.color({scheme: ['#f7fcb9', '#addd8e', '#31a354']});
 			});
 
 			$('#accent').click(function () {
-				_opt.color.scheme = "Accent";
-				chart.color(_opt.color)
+				chart.color({scheme: 'Accent'});
 			});
 
 			$('#rainbow').click(function () {
-				_opt.color.scheme = [
-					"#F44336",
-					"#E91E63",
-					"#9C27B0",
-					"#673AB7",
-					"#3F51B5",
-					"#2196F3",
-					"#03A9F4",
-					"#00BCD4",
-					"#009688",
-					"#4CAF50",
-					"#8BC34A",
-					"#CDDC39",
-					"#FFEB3B",
-					"#FFC107",
-					"#FF9800",
-					"#FF5722"
-				];
-				chart.color(_opt.color);
+				chart.color({scheme: [
+						"#F44336",
+						"#E91E63",
+						"#9C27B0",
+						"#673AB7",
+						"#3F51B5",
+						"#2196F3",
+						"#03A9F4",
+						"#00BCD4",
+						"#009688",
+						"#4CAF50",
+						"#8BC34A",
+						"#CDDC39",
+						"#FFEB3B",
+						"#FFC107",
+						"#FF9800",
+						"#FF5722"
+					]});
+
 			});
 
 			$('#grouped').click(function () {

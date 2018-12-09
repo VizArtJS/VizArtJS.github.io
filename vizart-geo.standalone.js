@@ -8,7 +8,7 @@
 
   L$1 = L$1 && L$1.hasOwnProperty('default') ? L$1['default'] : L$1;
 
-  var version = "2.0.1";
+  var version = "2.0.2";
 
   function ascending (a, b) {
     return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -91,7 +91,7 @@
     return [min, max];
   }
 
-  function sequence (start, stop, step) {
+  function range (start, stop, step) {
     start = +start, stop = +stop, step = (n = arguments.length) < 2 ? (stop = start, start = 0, 1) : n < 3 ? 1 : +step;
 
     var i = -1,
@@ -157,7 +157,7 @@
       return stop < start ? -step1 : step1;
   }
 
-  function threshold (values, p, valueof) {
+  function quantile (values, p, valueof) {
     if (valueof == null) valueof = number;
     if (!(n = values.length)) return;
     if ((p = +p) <= 0 || n < 2) return +valueof(values[0], 0, values);
@@ -1191,19 +1191,19 @@
     };
   }
 
-  function bimap(domain, range, deinterpolate, reinterpolate) {
+  function bimap(domain, range$$1, deinterpolate, reinterpolate) {
     var d0 = domain[0],
         d1 = domain[1],
-        r0 = range[0],
-        r1 = range[1];
+        r0 = range$$1[0],
+        r1 = range$$1[1];
     if (d1 < d0) d0 = deinterpolate(d1, d0), r0 = reinterpolate(r1, r0);else d0 = deinterpolate(d0, d1), r0 = reinterpolate(r0, r1);
     return function (x) {
       return r0(d0(x));
     };
   }
 
-  function polymap(domain, range, deinterpolate, reinterpolate) {
-    var j = Math.min(domain.length, range.length) - 1,
+  function polymap(domain, range$$1, deinterpolate, reinterpolate) {
+    var j = Math.min(domain.length, range$$1.length) - 1,
         d = new Array(j),
         r = new Array(j),
         i = -1;
@@ -1211,12 +1211,12 @@
     // Reverse descending domains.
     if (domain[j] < domain[0]) {
       domain = domain.slice().reverse();
-      range = range.slice().reverse();
+      range$$1 = range$$1.slice().reverse();
     }
 
     while (++i < j) {
       d[i] = deinterpolate(domain[i], domain[i + 1]);
-      r[i] = reinterpolate(range[i], range[i + 1]);
+      r[i] = reinterpolate(range$$1[i], range$$1[i + 1]);
     }
 
     return function (x) {
@@ -1233,7 +1233,7 @@
   // reinterpolate(a, b)(t) takes a parameter t in [0,1] and returns the corresponding domain value x in [a,b].
   function continuous(deinterpolate, reinterpolate) {
     var domain = unit,
-        range = unit,
+        range$$1 = unit,
         interpolate$$1 = value,
         clamp = false,
         piecewise$$1,
@@ -1241,17 +1241,17 @@
         input;
 
     function rescale() {
-      piecewise$$1 = Math.min(domain.length, range.length) > 2 ? polymap : bimap;
+      piecewise$$1 = Math.min(domain.length, range$$1.length) > 2 ? polymap : bimap;
       output = input = null;
       return scale;
     }
 
     function scale(x) {
-      return (output || (output = piecewise$$1(domain, range, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
+      return (output || (output = piecewise$$1(domain, range$$1, clamp ? deinterpolateClamp(deinterpolate) : deinterpolate, interpolate$$1)))(+x);
     }
 
     scale.invert = function (y) {
-      return (input || (input = piecewise$$1(range, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
+      return (input || (input = piecewise$$1(range$$1, domain, deinterpolateLinear, clamp ? reinterpolateClamp(reinterpolate) : reinterpolate)))(+y);
     };
 
     scale.domain = function (_) {
@@ -1259,11 +1259,11 @@
     };
 
     scale.range = function (_) {
-      return arguments.length ? (range = slice$1.call(_), rescale()) : range.slice();
+      return arguments.length ? (range$$1 = slice$1.call(_), rescale()) : range$$1.slice();
     };
 
     scale.rangeRound = function (_) {
-      return range = slice$1.call(_), interpolate$$1 = interpolateRound, rescale();
+      return range$$1 = slice$1.call(_), interpolate$$1 = interpolateRound, rescale();
     };
 
     scale.clamp = function (_) {
@@ -1694,26 +1694,26 @@
     return linearish(scale);
   }
 
-  function quantile$$1() {
+  function quantile$1() {
     var domain = [],
-        range = [],
+        range$$1 = [],
         thresholds = [];
 
     function rescale() {
       var i = 0,
-          n = Math.max(1, range.length);
+          n = Math.max(1, range$$1.length);
       thresholds = new Array(n - 1);
       while (++i < n) {
-        thresholds[i - 1] = threshold(domain, i / n);
+        thresholds[i - 1] = quantile(domain, i / n);
       }return scale;
     }
 
     function scale(x) {
-      if (!isNaN(x = +x)) return range[bisectRight(thresholds, x)];
+      if (!isNaN(x = +x)) return range$$1[bisectRight(thresholds, x)];
     }
 
     scale.invertExtent = function (y) {
-      var i = range.indexOf(y);
+      var i = range$$1.indexOf(y);
       return i < 0 ? [NaN, NaN] : [i > 0 ? thresholds[i - 1] : domain[0], i < thresholds.length ? thresholds[i] : domain[domain.length - 1]];
     };
 
@@ -1727,7 +1727,7 @@
     };
 
     scale.range = function (_) {
-      return arguments.length ? (range = slice$1.call(_), rescale()) : range.slice();
+      return arguments.length ? (range$$1 = slice$1.call(_), rescale()) : range$$1.slice();
     };
 
     scale.quantiles = function () {
@@ -1735,7 +1735,7 @@
     };
 
     scale.copy = function () {
-      return quantile$$1().domain(domain).range(range);
+      return quantile$1().domain(domain).range(range$$1);
     };
 
     return scale;
@@ -5166,7 +5166,7 @@
       _scheme = scheme$$1;
     }
 
-    var _scale = quantile$$1().domain(_distinction);
+    var _scale = quantile$1().domain(_distinction);
 
     if (isString(_scheme)) {
       var _interpolated = interpolateSequentialScheme(_scheme);
@@ -5298,7 +5298,7 @@
       return scale(1);
     } else {
       //https://github.com/d3/d3-array#range
-      return sequence(distinction).map(function (d) {
+      return range(distinction).map(function (d) {
         return scale(d / (distinction - 1));
       });
     }
@@ -8306,8 +8306,22 @@
   var apiColor$1 = function apiColor(state) {
     return {
       color: function color(colorOptions) {
-        state._options.color = colorOptions;
-        state._color = state._composers.color(colorOptions);
+        if (!colorOptions) {
+          console.warn('color opt is null, either scheme or type is required');
+          return;
+        } else if (!colorOptions.type && !colorOptions.scheme) {
+          console.warn('invalid color opt, either scheme or type is required');
+          return;
+        }
+
+        if (colorOptions.type) {
+          state._options.color.type = colorOptions.type;
+        }
+
+        if (colorOptions.scheme) {
+          state._options.color.scheme = colorOptions.scheme;
+        }
+        state._color = state._composers.color(state._options.color);
 
         var _svg = state._svg,
             _options = state._options,

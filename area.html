@@ -247,27 +247,22 @@ d3.csv('assets/nasdaq1985-2012.csv', function(err, res){
 			area.render(res);
 		});
 
-		let opt = area.options();
-
 		// change color
 		$('#red').click(function(){
-			opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
-			area.color(opt.color);
+			area.color({scheme: ['#ffeda0','#feb24c','#f03b20']});
 		});
 
 		$('#green').click(function(){
-			opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-			area.color(opt.color)
+			area.color({scheme: ['#f7fcb9','#addd8e','#31a354']});
+
 		});
 
 		$('#warm').click(function(){
-			opt.color.scheme = "Warm";
-			area.color(opt.color)
+			area.color({scheme: 'Warm'});
 		});
 
 		$('#cool').click(function(){
-			opt.color.scheme = "Cool";
-			area.color(opt.color);
+			area.color({scheme: 'Cold'});
 		});
 
 		$('#x-asc').click(function(){

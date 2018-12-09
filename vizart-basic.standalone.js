@@ -6,7 +6,7 @@
   (factory((global.VizArtBasic = {})));
 }(this, (function (exports) { 'use strict';
 
-  var version = "2.0.7";
+  var version = "2.0.8";
 
   function ascending (a, b) {
     return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -2103,6 +2103,8 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
+  var mondays = monday.range;
+  var thursdays = thursday.range;
 
   var month = newInterval(function (date) {
     date.setDate(1);
@@ -2192,6 +2194,8 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
+  var utcMondays = utcMonday.range;
+  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function (date) {
     date.setUTCDate(1);
@@ -11035,6 +11039,25 @@
     rotateXTicks(svg, opt.xAxis.labelAngle, false);
   };
 
+  var apiSort = function apiSort(state) {
+    return {
+      sort: function sort(accessor) {
+        var direction = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'asc';
+
+        if (direction !== 'asc' && direction !== 'desc') {
+          console.error('invalid direction, only asc and desc are supported');
+        }
+
+        state._options.ordering = {
+          accessor: accessor,
+          direction: direction
+        };
+
+        state.update();
+      }
+    };
+  };
+
   var CartesianStackedOptions = {
     chart: {
       margin: {
@@ -16774,7 +16797,22 @@
   var apiColor$1 = function apiColor(state) {
     return {
       color: function color(colorOpt) {
-        state._options.color = colorOpt;
+        if (!colorOpt) {
+          console.warn('color opt is null, either scheme or type is required');
+          return;
+        } else if (!colorOpt.type && !colorOpt.scheme) {
+          console.warn('invalid color opt, either scheme or type is required');
+          return;
+        }
+
+        if (colorOpt.type) {
+          state._options.color.type = colorOpt.type;
+        }
+
+        if (colorOpt.scheme) {
+          state._options.color.scheme = colorOpt.scheme;
+        }
+
         state.update();
       }
     };
@@ -16802,7 +16840,7 @@
 
         var chart = Object.assign(baseChart, apiRender$2(baseChart, animate, hasAxis, stacked), apiUpdateChart(baseChart, animate, hasAxis, stacked));
 
-        return addApi(chart, [apiColor$1].concat(toConsumableArray(apis)));
+        return addApi(chart, [apiColor$1, apiSort].concat(toConsumableArray(apis)));
       };
     };
   };
@@ -17121,7 +17159,7 @@
     });
   };
 
-  var apiSort = function apiSort(state) {
+  var apiSort$1 = function apiSort(state) {
     return {
       sort: function sort(field, direction) {
         var _options = state._options,
@@ -17169,7 +17207,7 @@
     }
   };
 
-  var bar = cartesian(BarOpt, animate, [apiSort]);
+  var bar = cartesian(BarOpt, animate, [apiSort$1]);
 
   var percentFormat = format('.00%');
 
@@ -20022,7 +20060,7 @@
     }
   };
 
-  var radar = polarStacked(RadarOptions, animate$8);
+  var radar = polarStacked(RadarOptions, animate$8, [apiGroup, apiStack, apiExpand]);
 
   var getRadius$1 = function getRadius(opt) {
     var outerRadius = Math.min(opt.chart.innerWidth / 2, opt.chart.innerHeight / 2) - opt.plots.outerRadiusMargin;

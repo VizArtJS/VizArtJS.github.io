@@ -243,32 +243,24 @@ _chart.render(fakeData);
 			let chart = VizArtBasic.pie('#chart', options);
 			chart.render(res);
 
-			let _opt = chart.options();
-
 			// change color
 			$('#red').click(function(){
-				_opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
-				chart.color(_opt.color);
+				chart.color({scheme: ['#ffeda0','#feb24c','#f03b20']});
 			});
 
 			$('#green').click(function(){
-				_opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-				chart.color(_opt.color)
+				chart.color({scheme: ['#f7fcb9','#addd8e','#31a354']});
 			});
 
 			$('#warm').click(function(){
-				_opt.color.scheme = "Warm";
-				chart.color(_opt.color)
+				chart.color({scheme: 'Warm'});
 			});
 
 			$('#cool').click(function(){
-				_opt.color.scheme = "Cool";
-				chart.color(_opt.color);
+				chart.color({scheme: 'Cold'});
 			});
 
-			$('#x-asc').click(function(){
-				chart.sort('mx', 'asc');
-			})
+
 			$('#x-desc').click(function(){
 				chart.sort('mx', 'desc');
 			});

@@ -286,23 +286,17 @@ _chart.render(_data);
 		d3.csv('./data/sales_flow_cn.csv', function(res){
 			_chart.render(res);
 
-			let _opt = _chart.options();
-
-
 			// change color
 			$('#red').click(function(){
-				_opt.color.scheme = ['#ffeda0','#feb24c','#f03b20'];
-				_chart.color(_opt.color);
+				_chart.color({ scheme: ['#ffeda0','#feb24c','#f03b20']});
 			});
 
 			$('#green').click(function(){
-				_opt.color.scheme = ['#f7fcb9','#addd8e','#31a354'];
-				_chart.color(_opt.color)
+				_chart.color({ scheme: ['#f7fcb9','#addd8e','#31a354']});
 			});
 
 			$('#purple').click(function(){
-				_opt.color.scheme = ['#e7e1ef','#c994c7','#dd1c77'];
-				_chart.color(_opt.color)
+				_chart.color({ scheme: ['#e7e1ef','#c994c7','#dd1c77']});
 			});
 
 		});

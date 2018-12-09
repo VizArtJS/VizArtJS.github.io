@@ -240,7 +240,7 @@ chart.render(fakeData);
 		};
 
 		$.getJSON('./data/basic.json', res=> {
-			let chart = new VizArtBasic.Line('#chart', options);
+			let chart = new VizArtBasic.line('#chart', options);
 			chart.render(res);
 
 			let _opt = chart.options();

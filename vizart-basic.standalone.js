@@ -2103,8 +2103,6 @@
   var saturday = weekday(6);
 
   var sundays = sunday.range;
-  var mondays = monday.range;
-  var thursdays = thursday.range;
 
   var month = newInterval(function (date) {
     date.setDate(1);
@@ -2194,8 +2192,6 @@
   var utcSaturday = utcWeekday(6);
 
   var utcSundays = utcSunday.range;
-  var utcMondays = utcMonday.range;
-  var utcThursdays = utcThursday.range;
 
   var utcMonth = newInterval(function (date) {
     date.setUTCDate(1);
@@ -13758,7 +13754,7 @@
     return new Step(context, 1);
   }
 
-  function stackOffsetNone (series, order) {
+  function none$1 (series, order) {
     if (!((n = series.length) > 1)) return;
     for (var i = 1, j, s0, s1 = series[order[0]], n, m = s1.length; i < n; ++i) {
       s0 = s1, s1 = series[order[i]];
@@ -13768,7 +13764,7 @@
     }
   }
 
-  function stackOrderNone (series) {
+  function none$2 (series) {
     var n = series.length,
         o = new Array(n);
     while (--n >= 0) {
@@ -13782,8 +13778,8 @@
 
   function stack () {
     var keys = constant$7([]),
-        order = stackOrderNone,
-        offset = stackOffsetNone,
+        order = none$2,
+        offset = none$1,
         value = stackValue;
 
     function stack(data) {
@@ -13819,11 +13815,11 @@
     };
 
     stack.order = function (_) {
-      return arguments.length ? (order = _ == null ? stackOrderNone : typeof _ === "function" ? _ : constant$7(slice$4.call(_)), stack) : order;
+      return arguments.length ? (order = _ == null ? none$2 : typeof _ === "function" ? _ : constant$7(slice$4.call(_)), stack) : order;
     };
 
     stack.offset = function (_) {
-      return arguments.length ? (offset = _ == null ? stackOffsetNone : _, stack) : offset;
+      return arguments.length ? (offset = _ == null ? none$1 : _, stack) : offset;
     };
 
     return stack;
@@ -13838,7 +13834,7 @@
         series[i][j][1] /= y;
       }
     }
-    stackOffsetNone(series, order);
+    none$1(series, order);
   }
 
   function stackOffsetDiverging (series, order) {
@@ -13863,7 +13859,7 @@
         y += series[i][j][1] || 0;
       }s0[j][1] += s0[j][0] = -y / 2;
     }
-    stackOffsetNone(series, order);
+    none$1(series, order);
   }
 
   function stackOffsetWiggle (series, order) {
@@ -13886,12 +13882,12 @@
       if (s1) y -= s2 / s1;
     }
     s0[j - 1][1] += s0[j - 1][0] = y;
-    stackOffsetNone(series, order);
+    none$1(series, order);
   }
 
-  function stackOrderAscending (series) {
+  function ascending$3 (series) {
     var sums = series.map(sum$2);
-    return stackOrderNone(series).sort(function (a, b) {
+    return none$2(series).sort(function (a, b) {
       return sums[a] - sums[b];
     });
   }
@@ -13907,7 +13903,7 @@
   }
 
   function stackOrderDescending (series) {
-    return stackOrderAscending(series).reverse();
+    return ascending$3(series).reverse();
   }
 
   function stackOrderInsideOut (series) {
@@ -13915,7 +13911,7 @@
         i,
         j,
         sums = series.map(sum$2),
-        order = stackOrderNone(series).sort(function (a, b) {
+        order = none$2(series).sort(function (a, b) {
       return sums[b] - sums[a];
     }),
         top = 0,
@@ -13938,21 +13934,21 @@
   }
 
   function stackOrderReverse (series) {
-    return stackOrderNone(series).reverse();
+    return none$2(series).reverse();
   }
 
   var getSeriesOrdering = function getSeriesOrdering(opt) {
     switch (opt.ordering.direction) {
       case 'asc':
-        return stackOrderAscending;
+        return ascending$3;
       case 'desc':
         return stackOrderDescending;
       case 'none':
-        return stackOrderNone;
+        return none$2;
       case 'reverse':
         return stackOrderReverse;
       default:
-        return stackOrderNone;
+        return none$2;
     }
   };
 
@@ -13965,7 +13961,7 @@
         stackLayout.offset(stackOffsetExpand).order(ordering);
         break;
       case Stacks.Zero:
-        stackLayout.offset(stackOffsetNone).order(ordering);
+        stackLayout.offset(none$1).order(ordering);
         break;
       case Stacks.Silhouette:
         stackLayout.offset(stackOffsetSilhouette).order(stackOrderInsideOut);
@@ -13978,7 +13974,7 @@
         break;
 
       default:
-        stackLayout.offset(stackOffsetNone);
+        stackLayout.offset(none$1);
         break;
     }
 
@@ -16804,7 +16800,7 @@
 
         var baseChart = canvasLayer(id, opt, compose(ChartOpt));
 
-        var chart = Object.assign({}, baseChart, apiRender$2(baseChart, animate, hasAxis, stacked), apiUpdateChart(baseChart, animate, hasAxis, stacked));
+        var chart = Object.assign(baseChart, apiRender$2(baseChart, animate, hasAxis, stacked), apiUpdateChart(baseChart, animate, hasAxis, stacked));
 
         return addApi(chart, [apiColor$1].concat(toConsumableArray(apis)));
       };
@@ -19678,7 +19674,7 @@
     context.restore();
   };
 
-  function ascending$3 (a, b) {
+  function ascending$4 (a, b) {
     return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
   }
 
@@ -19708,11 +19704,11 @@
 
   function ascendingComparator$2(f) {
     return function (d, x) {
-      return ascending$3(f(d), x);
+      return ascending$4(f(d), x);
     };
   }
 
-  var ascendingBisect$2 = bisector$2(ascending$3);
+  var ascendingBisect$2 = bisector$2(ascending$4);
 
   var pi$3 = Math.PI;
 

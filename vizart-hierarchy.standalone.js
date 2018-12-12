@@ -6,7 +6,7 @@
   (factory((global.VizArtHierarchy = {})));
 }(this, (function (exports) { 'use strict';
 
-  var version = "2.0.3";
+  var version = "2.0.5";
 
   function ascending (a, b) {
     return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -9409,225 +9409,6 @@
     return tree;
   }
 
-  var apiRender$2 = function apiRender$$1(state) {
-    return {
-      render: function render(data) {
-        apiRender(state).render(data);
-
-        var _options = state._options,
-            _data = state._data,
-            _svg = state._svg,
-            _color = state._color;
-
-
-        var _height = _options.chart.innerHeight;
-
-        var xScale = linear$1().range([0, _options.chart.innerWidth]);
-        var yScale = linear$1().range([0, _options.chart.innerHeight]);
-
-        var _partition = partition().size([_options.chart.innerWidth, _options.chart.innerHeight]).padding(0).round(true);
-
-        var _tree = hierarchy(_data).sum(function (d) {
-          return d.size;
-        });
-        var _root = _partition(_tree);
-
-        var rect = _svg.selectAll('.icicle-slice');
-        var label = _svg.selectAll('.icicle-label');
-
-        var clicked = function clicked(d) {
-          xScale.domain([d.x0, d.x1]);
-          yScale.domain([d.y0, _height]).range([d.depth ? 20 : 0, _height]);
-
-          _svg.selectAll('.icicle-slice').transition().duration(750).attr('x', function (d) {
-            return xScale(d.x0);
-          }).attr('y', function (d) {
-            return yScale(d.y0);
-          }).attr('width', function (d) {
-            return xScale(d.x1) - xScale(d.x0);
-          }).attr('height', function (d) {
-            return yScale(d.y1) - yScale(d.y0);
-          });
-
-          _svg.selectAll('.icicle-label').transition().duration(_options.animation.duration.quickUpdate).attr('x', function (d) {
-            return xScale(d.x0);
-          }).attr('y', function (d) {
-            return yScale(d.y0);
-          }).attr('dx', 5).attr('dy', 20);
-        };
-
-        rect.data(_root.descendants()).enter().append('rect').attr('class', 'icicle-slice').attr('stroke', '#fff').attr('x', function (d) {
-          return d.x0;
-        }).attr('y', function (d) {
-          return d.y0;
-        }).attr('width', function (d) {
-          return d.x1 - d.x0;
-        }).attr('height', function (d) {
-          return d.y1 - d.y0;
-        }).attr('fill', function (d) {
-          return _color(d.data.name);
-        }).on('click', clicked);
-
-        label.data(_root.descendants()).enter().append('text').attr('class', 'icicle-label').attr('x', function (d) {
-          return xScale(d.x0);
-        }).attr('y', function (d) {
-          return yScale(d.y0);
-        }).attr('dx', 5).attr('dy', 20).attr('text-anchor', 'start').text(function (d) {
-          return d.data.name;
-        }).style('color', 'white').style('font-size', '12px').on('click', clicked);
-      }
-    };
-  };
-
-  var apiColor$1 = function apiColor(state) {
-    return {
-      color: function color(colorOpt) {
-        if (!colorOpt) {
-          console.warn('color opt is null, either scheme or type is required');
-          return;
-        } else if (!colorOpt.type && !colorOpt.scheme) {
-          console.warn('invalid color opt, either scheme or type is required');
-          return;
-        }
-
-        if (colorOpt.type) {
-          state._options.color.type = colorOpt.type;
-        }
-
-        if (colorOpt.scheme) {
-          state._options.color.scheme = colorOpt.scheme;
-        }
-
-        var _options = state._options,
-            _composers = state._composers,
-            _svg = state._svg,
-            _color = state._color;
-
-        state._color = _composers.color(state._options.color);
-
-        _svg.selectAll('.icicle-slice').transition().duration(_options.animation.duration.update).attr('fill', function (d) {
-          return _color(d.name);
-        });
-      }
-    };
-  };
-
-  var opt = {
-    chart: {
-      type: 'icicle-tree'
-    },
-    color: DefaultCategoricalColor
-  };
-
-  var index$1 = factory(svgLayer, { opt: opt }, [apiRender$2, apiColor$1]);
-
-  var diagonalHorizontal = function diagonalHorizontal(d) {
-    return 'M' + d.y + ',' + d.x + 'C' + (d.parent.y + 100) + ',' + d.x + ' ' + (d.parent.y + 100) + ',' + d.parent.x + ' ' + d.parent.y + ',' + d.parent.x;
-  };
-
-  var draw = function draw(state) {
-    var _options = state._options,
-        _svg = state._svg,
-        _color = state._color,
-        _data = state._data;
-
-
-    var _tree = _options.plots.mode === 'tree' ? tree$1().size([_options.chart.innerHeight, _options.chart.innerWidth]) : cluster().size([_options.chart.innerHeight, _options.chart.innerWidth]);
-
-    var minValues = [];
-    var maxValues = [];
-    var nodeScale = sqrt();
-    var nodeRadius = function nodeRadius(node) {
-      //Set max for root node.
-      if (node.depth === 0) {
-        return nodeScale.range()[1];
-      }
-
-      // only one node in this depth
-      if (minValues[node.depth] === maxValues[node.depth]) {
-        return nodeScale.range()[1];
-      }
-
-      nodeScale.domain([minValues[node.depth], maxValues[node.depth]]);
-      return nodeScale(node.value);
-    };
-
-    var root = hierarchy(_data).sum(function (d) {
-      return d.size;
-    }).sort(function (a, b) {
-      return a.height - b.height || a.data.name.localeCompare(b.data.name);
-    });
-
-    var maxDepth = root.height;
-
-    _tree(root);
-
-    //We dynamically size based on how many first level nodes we have
-    var scale = _options.plots.branchPadding === -1 ? Math.min(_options.chart.innerHeight, _options.chart.innerWidth) / root.descendants().length : Math.min(_options.chart.innerHeight, _options.chart.innerWidth) * _options.plots.branchPadding;
-
-    nodeScale.range([1.5, scale / 2]);
-
-    _tree.nodeSize([scale, 0]);
-    var depthSpan = _options.plots.fixedSpan > 0 ? _options.plots.fixedSpan : _options.width / (maxDepth + 1);
-
-    //Set max/min values
-
-    var _loop = function _loop(i) {
-      var vals = root.descendants().filter(function (d) {
-        return d.depth === i;
-      });
-      maxValues[i] = max(vals, function (d) {
-        return d.value;
-      });
-      minValues[i] = min(vals, function (d) {
-        return d.value;
-      });
-    };
-
-    for (var i = 1; i < maxDepth + 1; i++) {
-      _loop(i);
-    }
-
-    var link = _svg.selectAll('.link').data(root.descendants().slice(1)).enter().append('path').attr('class', 'link').attr('d', diagonalHorizontal).style('fill', 'none').style('stroke-linecap', 'round').style('stroke-width', function (d) {
-      return nodeRadius(d) * 2;
-    }).style('stroke', function (d) {
-      return _color(d.data.name);
-    }).style('stroke-opacity', _options.plots.linkOpacity);
-
-    var node = _svg.selectAll('.node').data(root.descendants()).enter().append('g').attr('class', function (d) {
-      return 'node' + (d.children ? ' node--internal' : ' node--leaf');
-    }).attr('transform', function (d) {
-      return 'translate(' + d.y + ',' + d.x + ')';
-    });
-
-    node.append('circle').attr('r', nodeRadius).style('stroke', function (d) {
-      return _color(d.data.name);
-    }).style('stroke-opacity', _options.plots.nodeStrokeOpacity).style('fill', function (d) {
-      return _color(d.data.name);
-    }).style('fill-opacity', _options.plots.nodeOpacity);
-
-    node.append('text').attr('dy', 4).attr('x', function (d) {
-      return d.children ? -_options.plots.textOffset : _options.plots.textOffset;
-    }).style('text-anchor', function (d) {
-      return d.children ? 'end' : 'start';
-    }).text(function (d) {
-      return d.data.name;
-    });
-
-    state.node = node;
-    state.link = link;
-    state.root = root;
-  };
-
-  var apiRender$3 = function apiRender$$1(state) {
-    return {
-      render: function render(data) {
-        apiRender(state).render(data);
-        draw(state);
-      }
-    };
-  };
-
   var noop$1 = { value: function value() {} };
 
   function dispatch$1() {
@@ -10573,13 +10354,234 @@
   selection.prototype.interrupt = selection_interrupt;
   selection.prototype.transition = selection_transition;
 
+  var apiRender$2 = function apiRender$$1(state) {
+    return {
+      render: function render(data) {
+        apiRender(state).render(data);
+
+        var _options = state._options,
+            _data = state._data,
+            _svg = state._svg,
+            _color = state._color,
+            _containerId = state._containerId;
+
+
+        var _height = _options.chart.innerHeight;
+
+        var xScale = linear$1().range([0, _options.chart.innerWidth]);
+        var yScale = linear$1().range([0, _options.chart.innerHeight]);
+
+        var _partition = partition().size([_options.chart.innerWidth, _options.chart.innerHeight]).padding(0).round(true);
+
+        var _tree = hierarchy(_data).sum(function (d) {
+          return d.size;
+        });
+        var _root = _partition(_tree);
+
+        var rect = _svg.selectAll('.icicle-slice');
+        var label = _svg.selectAll('.icicle-label');
+
+        var clicked = function clicked(d) {
+          xScale.domain([d.x0, d.x1]);
+          yScale.domain([d.y0, _height]).range([d.depth ? 20 : 0, _height]);
+
+          transition().selectAll(_containerId + ' .icicle-slice').duration(750).attr('x', function (d) {
+            return xScale(d.x0);
+          }).attr('y', function (d) {
+            return yScale(d.y0);
+          }).attr('width', function (d) {
+            return xScale(d.x1) - xScale(d.x0);
+          }).attr('height', function (d) {
+            return yScale(d.y1) - yScale(d.y0);
+          });
+
+          transition().selectAll(_containerId + ' .icicle-slice').duration(_options.animation.duration.quickUpdate).attr('x', function (d) {
+            return xScale(d.x0);
+          }).attr('y', function (d) {
+            return yScale(d.y0);
+          }).attr('dx', 5).attr('dy', 20);
+        };
+
+        rect.data(_root.descendants()).enter().append('rect').attr('class', 'icicle-slice').attr('stroke', '#fff').attr('x', function (d) {
+          return d.x0;
+        }).attr('y', function (d) {
+          return d.y0;
+        }).attr('width', function (d) {
+          return d.x1 - d.x0;
+        }).attr('height', function (d) {
+          return d.y1 - d.y0;
+        }).attr('fill', function (d) {
+          return _color(d.data.name);
+        }).on('click', clicked);
+
+        label.data(_root.descendants()).enter().append('text').attr('class', 'icicle-label').attr('x', function (d) {
+          return xScale(d.x0);
+        }).attr('y', function (d) {
+          return yScale(d.y0);
+        }).attr('dx', 5).attr('dy', 20).attr('text-anchor', 'start').text(function (d) {
+          return d.data.name;
+        }).style('color', 'white').style('font-size', '12px').on('click', clicked);
+      }
+    };
+  };
+
+  var apiColor$1 = function apiColor(state) {
+    return {
+      color: function color(colorOpt) {
+        if (!colorOpt) {
+          console.warn('color opt is null, either scheme or type is required');
+          return;
+        } else if (!colorOpt.type && !colorOpt.scheme) {
+          console.warn('invalid color opt, either scheme or type is required');
+          return;
+        }
+
+        if (colorOpt.type) {
+          state._options.color.type = colorOpt.type;
+        }
+
+        if (colorOpt.scheme) {
+          state._options.color.scheme = colorOpt.scheme;
+        }
+
+        var _options = state._options,
+            _composers = state._composers,
+            _containerId = state._containerId,
+            _color = state._color;
+
+        state._color = _composers.color(state._options.color);
+
+        transition().selectAll(_containerId + ' .icicle-slice').duration(_options.animation.duration.update).attr('fill', function (d) {
+          return _color(d.name);
+        });
+      }
+    };
+  };
+
+  var opt = {
+    chart: {
+      type: 'icicle-tree'
+    },
+    color: DefaultCategoricalColor
+  };
+
+  var index$1 = factory(svgLayer, { opt: opt }, [apiRender$2, apiColor$1]);
+
+  var diagonalHorizontal = function diagonalHorizontal(d) {
+    return 'M' + d.y + ',' + d.x + 'C' + (d.parent.y + 100) + ',' + d.x + ' ' + (d.parent.y + 100) + ',' + d.parent.x + ' ' + d.parent.y + ',' + d.parent.x;
+  };
+
+  var draw = function draw(state) {
+    var _options = state._options,
+        _svg = state._svg,
+        _color = state._color,
+        _data = state._data;
+
+
+    var _tree = _options.plots.mode === 'tree' ? tree$1().size([_options.chart.innerHeight, _options.chart.innerWidth]) : cluster().size([_options.chart.innerHeight, _options.chart.innerWidth]);
+
+    var minValues = [];
+    var maxValues = [];
+    var nodeScale = sqrt();
+    var nodeRadius = function nodeRadius(node) {
+      //Set max for root node.
+      if (node.depth === 0) {
+        return nodeScale.range()[1];
+      }
+
+      // only one node in this depth
+      if (minValues[node.depth] === maxValues[node.depth]) {
+        return nodeScale.range()[1];
+      }
+
+      nodeScale.domain([minValues[node.depth], maxValues[node.depth]]);
+      return nodeScale(node.value);
+    };
+
+    var root = hierarchy(_data).sum(function (d) {
+      return d.size;
+    }).sort(function (a, b) {
+      return a.height - b.height || a.data.name.localeCompare(b.data.name);
+    });
+
+    var maxDepth = root.height;
+
+    _tree(root);
+
+    //We dynamically size based on how many first level nodes we have
+    var scale = _options.plots.branchPadding === -1 ? Math.min(_options.chart.innerHeight, _options.chart.innerWidth) / root.descendants().length : Math.min(_options.chart.innerHeight, _options.chart.innerWidth) * _options.plots.branchPadding;
+
+    nodeScale.range([1.5, scale / 2]);
+
+    _tree.nodeSize([scale, 0]);
+    var depthSpan = _options.plots.fixedSpan > 0 ? _options.plots.fixedSpan : _options.width / (maxDepth + 1);
+
+    //Set max/min values
+
+    var _loop = function _loop(i) {
+      var vals = root.descendants().filter(function (d) {
+        return d.depth === i;
+      });
+      maxValues[i] = max(vals, function (d) {
+        return d.value;
+      });
+      minValues[i] = min(vals, function (d) {
+        return d.value;
+      });
+    };
+
+    for (var i = 1; i < maxDepth + 1; i++) {
+      _loop(i);
+    }
+
+    var link = _svg.selectAll('.link').data(root.descendants().slice(1)).enter().append('path').attr('class', 'link').attr('d', diagonalHorizontal).style('fill', 'none').style('stroke-linecap', 'round').style('stroke-width', function (d) {
+      return nodeRadius(d) * 2;
+    }).style('stroke', function (d) {
+      return _color(d.data.name);
+    }).style('stroke-opacity', _options.plots.linkOpacity);
+
+    var node = _svg.selectAll('.node').data(root.descendants()).enter().append('g').attr('class', function (d) {
+      return 'node' + (d.children ? ' node--internal' : ' node--leaf');
+    }).attr('transform', function (d) {
+      return 'translate(' + d.y + ',' + d.x + ')';
+    });
+
+    node.append('circle').attr('r', nodeRadius).style('stroke', function (d) {
+      return _color(d.data.name);
+    }).style('stroke-opacity', _options.plots.nodeStrokeOpacity).style('fill', function (d) {
+      return _color(d.data.name);
+    }).style('fill-opacity', _options.plots.nodeOpacity);
+
+    node.append('text').attr('dy', 4).attr('x', function (d) {
+      return d.children ? -_options.plots.textOffset : _options.plots.textOffset;
+    }).style('text-anchor', function (d) {
+      return d.children ? 'end' : 'start';
+    }).text(function (d) {
+      return d.data.name;
+    });
+
+    state.node = node;
+    state.link = link;
+    state.root = root;
+  };
+
+  var apiRender$3 = function apiRender$$1(state) {
+    return {
+      render: function render(data) {
+        apiRender(state).render(data);
+        draw(state);
+      }
+    };
+  };
+
   var apiMode = function apiMode(state) {
     return {
       mode: function mode(_mode) {
         var _options = state._options,
             node = state.node,
             link = state.link,
-            root = state.root;
+            root = state.root,
+            _containerId = state._containerId;
 
         _options.mode = _mode;
 
@@ -10588,10 +10590,10 @@
         _tree(root);
 
         var t = transition().duration(750);
-        node.transition(t).attr('transform', function (d) {
+        t.selectAll(_containerId + ' .node').attr('transform', function (d) {
           return 'translate(' + d.y + ',' + d.x + ')';
         });
-        link.transition(t).attr('d', diagonalHorizontal);
+        t.selectAll(_containerId + ' .link').attr('d', diagonalHorizontal);
       }
     };
   };
@@ -10640,10 +10642,11 @@
 
         var _options = state._options,
             _svg = state._svg,
-            _color = state._color;
+            _color = state._color,
+            _containerId = state._containerId;
 
 
-        _svg.selectAll('.node circle').transition().duration(duration.general).style('stroke', function (d) {
+        transition().selectAll(_containerId + ' .node circle').duration(duration.general).style('stroke', function (d) {
           return _color(d.data.name);
         }).style('stroke-opacity', _options.plots.nodeStrokeOpacity).style('fill', function (d) {
           return _color(d.data.name);
@@ -11196,155 +11199,156 @@
   };
 
   var apiRender$4 = function apiRender$$1(state) {
-    return {
-      render: function render(data) {
-        apiRender(state).render(data);
+      return {
+          render: function render(data) {
+              apiRender(state).render(data);
 
-        var _options = state._options,
-            _svg = state._svg,
-            _data = state._data,
-            _color = state._color;
+              var _options = state._options,
+                  _svg = state._svg,
+                  _data = state._data,
+                  _color = state._color,
+                  _containerId = state._containerId;
 
-        // _color.domain( _data.map(d => d.name) );
+              // _color.domain( _data.map(d => d.name) );
 
-        var radius = Math.min(_options.chart.innerWidth, _options.chart.innerHeight) / 2;
+              var radius = Math.min(_options.chart.innerWidth, _options.chart.innerHeight) / 2;
 
-        _svg.attr('transform', 'translate(' + _options.chart.width / 2 + ',' + _options.chart.height / 2 + ')');
+              _svg.attr('transform', 'translate(' + _options.chart.width / 2 + ',' + _options.chart.height / 2 + ')');
 
-        // D3 Global Variables
-        var root = hierarchy(_data).sum(function (d) {
-          return d.size;
-        });
-        var node = root;
-        var x = linear$1().range([0, 2 * Math.PI]);
-        var y = sqrt().range([0, radius]);
-        // Calculate the d path for each slice.
-
-        var _partition = partition();
-        var _arc = arc().startAngle(function (d) {
-          return Math.max(0, Math.min(2 * Math.PI, x(d.x0)));
-        }).endAngle(function (d) {
-          return Math.max(0, Math.min(2 * Math.PI, x(d.x1)));
-        }).innerRadius(function (d) {
-          return Math.max(0, y(d.y0));
-        }).outerRadius(function (d) {
-          return Math.max(0, y(d.y1));
-        });
-
-        // When switching data: interpolate the arcs in data space.
-        var arcTweenData = function arcTweenData(a, i) {
-          // (a.x0s ? a.x0s : 0) -- grab the prev saved x0 or set to 0 (for 1st time through)
-          // avoids the stash() and allows the sunburst to grow into being
-          var oi = object({ x0: a.x0s ? a.x0s : 0, x1: a.x1s ? a.x1s : 0 }, a);
-          function tween(t) {
-            var b = oi(t);
-            a.x0s = b.x0;
-            a.x1s = b.x1;
-            return _arc(b);
-          }
-          if (i === 0) {
-            // If we are on the first arc, adjust the x domain to match the root node
-            // at the current zoom level. (We only need to do this once.)
-            var xd = array$2(x.domain(), [node.x0, node.x1]);
-            return function (t) {
-              x.domain(xd(t));
-              return tween(t);
-            };
-          } else {
-            return tween;
-          }
-        };
-
-        // When zooming: interpolate the scales.
-        function arcTweenZoom(d) {
-          var xd = array$2(x.domain(), [d.x0, d.x1]);
-          var yd = array$2(y.domain(), [d.y0, 1]); // [d.y0, 1]
-          var yr = array$2(y.range(), [d.y0 ? 40 : 0, radius]);
-
-          return function (d, i) {
-            return i ? function (t) {
-              return _arc(d);
-            } : function (t) {
-              x.domain(xd(t));
-              y.domain(yd(t)).range(yr(t));
-              return _arc(d);
-            };
-          };
-        }
-
-        // Respond to slice click.
-        function click(d) {
-          //Hide text while Sunburst transitions
-          _svg.selectAll('.node text').transition().attr('opacity', 0);
-          node = d;
-          var updateTrans = _svg.transition().duration(1000).selectAll('.node path').attrTween('d', arcTweenZoom(d));
-
-          if (_options.plots.drawLabels === true) {
-            updateTrans.on('end', function (e, i) {
-              // check if the animated element's data e lies within the visible angle span given in d
-              if (e.x0 > d.x0 && e.x0 < d.x1) {
-                // get a selection of the associated text element
-                var arcText = select(this.parentNode).select('text');
-                // fade in the text element and recalculate positions
-                arcText.transition().duration(750).attr('opacity', 1).attr('class', 'visible').attr('transform', function () {
-                  return 'rotate(' + computeTextRotation(e) + ')';
-                }).attr('x', function (d) {
-                  return y(d.y0);
-                }).text(function (d) {
-                  return d.data.name === 'root' ? '' : d.data.name;
-                });
-              }
-            });
-          }
-        }
-
-        function computeTextRotation(d) {
-          return (x((d.x0 + d.x1) / 2) - Math.PI / 2) / Math.PI * 180;
-        }
-
-        // Build the sunburst.
-        var first_build = true;
-        function _update() {
-          // todo: Determine how to size the slices.
-
-          if (first_build) {
-            // Add a <path d="[shape]" style="fill: [color];"><title>[popup text]</title></path>
-            //   to each <g> element; add click handler; save slice widths for tweening
-            _svg.selectAll('.node').data(_partition(root).descendants()).enter().append('g').attr('class', 'node');
-            _svg.selectAll('.node').append('path').style('fill', function (d) {
-              return d.parent ? _color(d.data.name) : 'white';
-            }) // Return white for root.
-            .on('click', click);
-
-            _svg.selectAll('.node').append('title').text(function (d) {
-              return d.data.name;
-            });
-
-            first_build = false;
-          } else {
-            _svg.selectAll('.node path').data(_partition(root).descendants());
-          }
-
-          var tweenTrans = _svg.transition().duration(1000).selectAll('.node path').attrTween('d', arcTweenData);
-
-          if (_options.plots.drawLabels === true) {
-            tweenTrans.on('end', function (d, i) {
-              select(this.parentNode).append('text').attr('transform', function (d) {
-                return 'rotate(' + computeTextRotation(d) + ')';
-              }).attr('x', function (d) {
-                return y(d.y0);
-              }).attr('dx', '6') // margin
-              .attr('dy', '.35em') // vertical-align
-              .text(function (d) {
-                return d.data.name === 'root' ? '' : d.data.name;
+              // D3 Global Variables
+              var root = hierarchy(_data).sum(function (d) {
+                  return d.size;
               });
-            });
-          }
-        }
+              var node = root;
+              var x = linear$1().range([0, 2 * Math.PI]);
+              var y = sqrt().range([0, radius]);
+              // Calculate the d path for each slice.
 
-        _update(); // GO!
-      }
-    };
+              var _partition = partition();
+              var _arc = arc().startAngle(function (d) {
+                  return Math.max(0, Math.min(2 * Math.PI, x(d.x0)));
+              }).endAngle(function (d) {
+                  return Math.max(0, Math.min(2 * Math.PI, x(d.x1)));
+              }).innerRadius(function (d) {
+                  return Math.max(0, y(d.y0));
+              }).outerRadius(function (d) {
+                  return Math.max(0, y(d.y1));
+              });
+
+              // When switching data: interpolate the arcs in data space.
+              var arcTweenData = function arcTweenData(a, i) {
+                  // (a.x0s ? a.x0s : 0) -- grab the prev saved x0 or set to 0 (for 1st time through)
+                  // avoids the stash() and allows the sunburst to grow into being
+                  var oi = object({ x0: a.x0s ? a.x0s : 0, x1: a.x1s ? a.x1s : 0 }, a);
+                  function tween(t) {
+                      var b = oi(t);
+                      a.x0s = b.x0;
+                      a.x1s = b.x1;
+                      return _arc(b);
+                  }
+                  if (i === 0) {
+                      // If we are on the first arc, adjust the x domain to match the root node
+                      // at the current zoom level. (We only need to do this once.)
+                      var xd = array$2(x.domain(), [node.x0, node.x1]);
+                      return function (t) {
+                          x.domain(xd(t));
+                          return tween(t);
+                      };
+                  } else {
+                      return tween;
+                  }
+              };
+
+              // When zooming: interpolate the scales.
+              function arcTweenZoom(d) {
+                  var xd = array$2(x.domain(), [d.x0, d.x1]);
+                  var yd = array$2(y.domain(), [d.y0, 1]); // [d.y0, 1]
+                  var yr = array$2(y.range(), [d.y0 ? 40 : 0, radius]);
+
+                  return function (d, i) {
+                      return i ? function (t) {
+                          return _arc(d);
+                      } : function (t) {
+                          x.domain(xd(t));
+                          y.domain(yd(t)).range(yr(t));
+                          return _arc(d);
+                      };
+                  };
+              }
+
+              // Respond to slice click.
+              function click(d) {
+                  //Hide text while Sunburst transitions
+                  transition().selectAll(_containerId + ' .node text').attr('opacity', 0);
+                  node = d;
+                  var updateTrans = transition().duration(1000).selectAll(_containerId + ' .node path').attrTween('d', arcTweenZoom(d));
+
+                  if (_options.plots.drawLabels === true) {
+                      updateTrans.on('end', function (e, i) {
+                          // check if the animated element's data e lies within the visible angle span given in d
+                          if (e.x0 > d.x0 && e.x0 < d.x1) {
+                              // get a selection of the associated text element
+                              var arcText = select(this.parentNode).select('text');
+                              // fade in the text element and recalculate positions
+                              arcText.transition().duration(750).attr('opacity', 1).attr('class', 'visible').attr('transform', function () {
+                                  return 'rotate(' + computeTextRotation(e) + ')';
+                              }).attr('x', function (d) {
+                                  return y(d.y0);
+                              }).text(function (d) {
+                                  return d.data.name === 'root' ? '' : d.data.name;
+                              });
+                          }
+                      });
+                  }
+              }
+
+              function computeTextRotation(d) {
+                  return (x((d.x0 + d.x1) / 2) - Math.PI / 2) / Math.PI * 180;
+              }
+
+              // Build the sunburst.
+              var first_build = true;
+              function _update() {
+                  // todo: Determine how to size the slices.
+
+                  if (first_build) {
+                      // Add a <path d="[shape]" style="fill: [color];"><title>[popup text]</title></path>
+                      //   to each <g> element; add click handler; save slice widths for tweening
+                      _svg.selectAll('.node').data(_partition(root).descendants()).enter().append('g').attr('class', 'node');
+                      _svg.selectAll('.node').append('path').style('fill', function (d) {
+                          return d.parent ? _color(d.data.name) : 'white';
+                      }) // Return white for root.
+                      .on('click', click);
+
+                      _svg.selectAll('.node').append('title').text(function (d) {
+                          return d.data.name;
+                      });
+
+                      first_build = false;
+                  } else {
+                      _svg.selectAll('.node path').data(_partition(root).descendants());
+                  }
+
+                  var tweenTrans = transition().duration(1000).selectAll(_containerId + ' .node path').attrTween('d', arcTweenData);
+
+                  if (_options.plots.drawLabels === true) {
+                      tweenTrans.on('end', function (d, i) {
+                          select(this.parentNode).append('text').attr('transform', function (d) {
+                              return 'rotate(' + computeTextRotation(d) + ')';
+                          }).attr('x', function (d) {
+                              return y(d.y0);
+                          }).attr('dx', '6') // margin
+                          .attr('dy', '.35em') // vertical-align
+                          .text(function (d) {
+                              return d.data.name === 'root' ? '' : d.data.name;
+                          });
+                      });
+                  }
+              }
+
+              _update(); // GO!
+          }
+      };
   };
 
   var apiColor$3 = function apiColor(state) {
@@ -11366,11 +11370,11 @@
           state._options.color.scheme = colorOptions.scheme;
         }
 
-        var _svg = state._svg;
+        var _containerId = state._containerId;
 
         state._color = state.composers.color(state._options.color);
 
-        _svg.selectAll('.node path').transition().duration(1250).attr('fill', function (d) {
+        transition().selectAll(_containerId + ' .node path').duration(1250).attr('fill', function (d) {
           return state._color(d.data.name);
         });
       }
@@ -11818,10 +11822,10 @@
     //Only show the circle legend when not at a leaf node
     if (focusNode.data.hasOwnProperty('_data')) {
       select('#legendRowWrapper').style('opacity', 0);
-      select('.legendWrapper').transition().duration(1000).style('opacity', 0);
+      transition().select('.legendWrapper').duration(1000).style('opacity', 0);
     } else {
       select('#legendRowWrapper').style('opacity', 1);
-      select('.legendWrapper').transition().duration(1000).delay(state.duration).style('opacity', 1);
+      transition().select('.legendWrapper').duration(1000).delay(state.duration).style('opacity', 1);
     } //else
 
     //Start animation
@@ -12183,7 +12187,7 @@
         });
 
         //Slowly fade in so the scaleFactor is set to the correct value in the mean time :)
-        select('.legendWrapper').transition().duration(1000).delay(500).style('opacity', 1);
+        transition().select(legendId + ' .legendWrapper').duration(1000).delay(500).style('opacity', 1);
       }
     };
   };
@@ -12223,7 +12227,8 @@
             _container = state._container,
             _svg = state._svg,
             _data = state._data,
-            _color = state._color;
+            _color = state._color,
+            _containerId = state._containerId;
 
 
         var _radius = Math.min(_options.chart.innerWidth, _options.chart.innerHeight) / 2;
@@ -12370,7 +12375,8 @@
           selectAll$1('path').on('mouseover', null);
 
           // Transition each segment to full opacity and then reactivate it.
-          selectAll$1('path').transition().duration(1000).style('opacity', 1).on('end', function () {
+
+          transition().selectAll(_containerId + ' path').duration(1000).style('opacity', 1).on('end', function () {
             select(this).on('mouseover', mouseover);
           });
 
